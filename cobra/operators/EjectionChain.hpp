@@ -2,6 +2,7 @@
 #define _F4D_EJECTIONCHAIN_HPP_
 
 #include "../BinaryHeap.hpp"
+#include "../BitMatrix.hpp"
 #include "../SmallFlatMap.hpp"
 #include "AbstractOperator.hpp"
 
@@ -12,8 +13,8 @@ namespace cobra {
     template <>
     struct EjectionChainStatistics<true> {
 
-        cobra::Welford num_tree_nodes;
-        cobra::Welford max_tree_depth;
+        Welford num_tree_nodes;
+        Welford max_tree_depth;
     };
 
     template <bool handle_partial_solution = false, bool log_statistics = false, int max_relocation_nodes = 100>
@@ -45,8 +46,8 @@ namespace cobra {
 #endif
         };
 
-        cobra::BitMatrix<2 * max_chain_length + 3> forbidden_i;
-        cobra::BitMatrix<3 * max_chain_length> forbidden_j;
+        BitMatrix<2 * max_chain_length + 3> forbidden_i;
+        BitMatrix<3 * max_chain_length> forbidden_j;
 
         std::vector<Relocation> relocation_nodes;
         std::vector<int> feasible_chains;
@@ -165,23 +166,22 @@ namespace cobra {
         /* ============ */
 
     public:
-        EjectionChain(const cobra::Instance &instance, MoveGenerators &moves, float tolerance)
-            : AbstractOperator(instance, moves, tolerance),
-              forbidden_i(max_relocation_nodes, instance.get_vertices_num()),
-              forbidden_j(max_relocation_nodes, instance.get_vertices_num()) {
+        EjectionChain(const Instance &instance_, MoveGenerators &moves_, float tolerance_)
+            : AbstractOperator(instance_, moves_, tolerance_),
+              forbidden_i(max_relocation_nodes),
+              forbidden_j(max_relocation_nodes) {
 
             relocation_nodes.resize(max_relocation_nodes);
 
             feasible_chains.reserve(max_relocation_nodes);
-            // heap_array.resize(max_relocation_nodes);
-        }
+           }
 
         static constexpr bool is_symmetric = false;
 
     protected:
-        inline void pre_processing(__attribute__((unused)) cobra::Solution &solution) override { }
+        inline void pre_processing(__attribute__((unused)) Solution &solution) override { }
 
-        inline float compute_cost(const cobra::Solution &solution, const MoveGenerator &move) override {
+        inline float compute_cost(const Solution &solution, const MoveGenerator &move) override {
 
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
@@ -208,7 +208,7 @@ namespace cobra {
         // The feasibility step for the ejection chain is more complex than
         // that of other operators. In this context, we use the move generator
         // as the starting point from which a tree of relocations.
-        bool is_feasible(const cobra::Solution &solution, const MoveGenerator &generating_move) override {
+        bool is_feasible(const Solution &solution, const MoveGenerator &generating_move) override {
 
             short rni = 0;  // relocate node index, no. of generated nodes
 
@@ -451,7 +451,7 @@ namespace cobra {
             return !feasible_chains.empty();
         }
 
-        inline void execute(cobra::Solution &solution, __attribute__((unused)) const MoveGenerator &p_move, cobra::VertexSet &storage) override {
+        inline void execute(Solution &solution, __attribute__((unused)) const MoveGenerator &p_move, VertexSet &storage) override {
 
             // Find the most improving feasible ejection chain
             // std::sort(feasible_chains.begin(), feasible_chains.end(), [this](int a, int b) -> bool {
@@ -460,7 +460,7 @@ namespace cobra {
 
             // Apply the best chain after storing its vertices
             const auto best_chain_index = feasible_chains[0];
-            auto &best_chain = relocation_nodes[best_chain_index];
+            //auto &best_chain = relocation_nodes[best_chain_index];
 
             // storage.insert(forbidden_i.get_set_entries_possibly_with_duplicates(best_chain_index).begin(),
             // forbidden_i.get_set_entries_possibly_with_duplicates(best_chain_index).end());
@@ -502,7 +502,7 @@ namespace cobra {
             assert(solution.is_feasible());
         }
 
-        void post_processing(__attribute__((unused)) cobra::Solution &solution) override {
+        void post_processing(__attribute__((unused)) Solution &solution) override {
             // REMOVE
             // std::cout << " Called: " << called;
             // std::cout << ", Current FeasChainLenAVG: " << static_cast<double>(feasChainLenSum) / static_cast<double>(foudFeas);
@@ -532,7 +532,7 @@ namespace cobra {
             float vrem, prevrem;
         };
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache12();
             c.v = vertex;
@@ -548,7 +548,7 @@ namespace cobra {
         }
 
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex, int backup) {
 
             auto c = Cache12();
             c.v = vertex;
@@ -578,7 +578,7 @@ namespace cobra {
             float vrem;
         };
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache1();
             c.v = vertex;
@@ -588,7 +588,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex, int backup) {
             auto c = Cache1();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);
@@ -603,7 +603,7 @@ namespace cobra {
             float prevrem;
         };
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache2();
             c.v = vertex;
@@ -612,7 +612,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex, int backup) {
             auto c = Cache2();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);

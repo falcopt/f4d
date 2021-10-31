@@ -3,6 +3,8 @@
 
 #include "Instance.hpp"
 #include "Solution.hpp"
+#include "mm.hpp"
+
 namespace cobra {
 
 #define SET_PARTITIONING_MAX_POOL_SIZE (100000)
@@ -11,7 +13,7 @@ namespace cobra {
     template <bool maybe_infeasible = false>
     class RouteSet {
 
-        const cobra::Instance &instance;
+        const Instance &instance;
 
         unsigned int words_num = 0;
         unsigned int *word = nullptr;
@@ -30,11 +32,11 @@ namespace cobra {
         unsigned int entries_num = 0;
 
     public:
-        explicit RouteSet(const cobra::Instance &instance_) : instance(instance_) {
+        explicit RouteSet(const Instance &instance_) : instance(instance_) {
 
             words_num = static_cast<unsigned int>(std::ceil(instance.get_vertices_num() / 30.0));
-            word = cobra::request_raw_contiguous_memory<unsigned int>(instance.get_vertices_num());
-            bit = cobra::request_raw_contiguous_memory<unsigned int>(instance.get_vertices_num());
+            word = request_raw_contiguous_memory<unsigned int>(instance.get_vertices_num());
+            bit = request_raw_contiguous_memory<unsigned int>(instance.get_vertices_num());
 
             auto pow = 0;
             for (auto i = instance.get_vertices_begin(); i < instance.get_vertices_end(); i++) {
@@ -65,17 +67,17 @@ namespace cobra {
                 }
             }
 
-            head = cobra::request_raw_contiguous_memory<unsigned int[HASH_LOAD][BUCKETS_NUM]>(instance.get_vertices_num());
-            next = cobra::request_raw_contiguous_memory<unsigned int>(SET_PARTITIONING_MAX_POOL_SIZE);
+            head = request_raw_contiguous_memory<unsigned int[HASH_LOAD][BUCKETS_NUM]>(instance.get_vertices_num());
+            next = request_raw_contiguous_memory<unsigned int>(SET_PARTITIONING_MAX_POOL_SIZE);
 
             entries_num = 0;
 
-            route_seq = cobra::request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE, instance.get_vertices_num());
-            route_load = cobra::request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE);
-            route_cost = cobra::request_raw_contiguous_memory<float>(SET_PARTITIONING_MAX_POOL_SIZE);
-            route_len = cobra::request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE);
-            route_set = cobra::request_raw_contiguous_memory<unsigned int>(SET_PARTITIONING_MAX_POOL_SIZE, words_num);
-            solution_cost = cobra::request_raw_contiguous_memory<float>(SET_PARTITIONING_MAX_POOL_SIZE);
+            route_seq = request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE, instance.get_vertices_num());
+            route_load = request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE);
+            route_cost = request_raw_contiguous_memory<float>(SET_PARTITIONING_MAX_POOL_SIZE);
+            route_len = request_raw_contiguous_memory<unsigned short>(SET_PARTITIONING_MAX_POOL_SIZE);
+            route_set = request_raw_contiguous_memory<unsigned int>(SET_PARTITIONING_MAX_POOL_SIZE, words_num);
+            solution_cost = request_raw_contiguous_memory<float>(SET_PARTITIONING_MAX_POOL_SIZE);
         }
 
         void clear() {
@@ -98,18 +100,18 @@ namespace cobra {
 
         virtual ~RouteSet() {
 
-            cobra::release_raw_contiguous_memory(word);
-            cobra::release_raw_contiguous_memory(bit);
+            release_raw_contiguous_memory(word);
+            release_raw_contiguous_memory(bit);
 
-            cobra::release_raw_contiguous_memory(head);
-            cobra::release_raw_contiguous_memory(next);
+            release_raw_contiguous_memory(head);
+            release_raw_contiguous_memory(next);
 
-            cobra::release_raw_contiguous_memory(route_seq);
-            cobra::release_raw_contiguous_memory(route_load);
-            cobra::release_raw_contiguous_memory(route_cost);
-            cobra::release_raw_contiguous_memory(route_len);
-            cobra::release_raw_contiguous_memory(route_set);
-            cobra::release_raw_contiguous_memory(solution_cost);
+            release_raw_contiguous_memory(route_seq);
+            release_raw_contiguous_memory(route_load);
+            release_raw_contiguous_memory(route_cost);
+            release_raw_contiguous_memory(route_len);
+            release_raw_contiguous_memory(route_set);
+            release_raw_contiguous_memory(solution_cost);
         }
 
         inline unsigned int size() const {
@@ -129,13 +131,13 @@ namespace cobra {
         unsigned short *route_len = nullptr;
         float *solution_cost = nullptr;  // cost of the best solution in which the route was found
 
-        void add_routes(cobra::Solution<maybe_infeasible> &solution) {
-            for (auto route = solution.get_first_route(); route != Solution<maybe_infeasible>::dummy_route; route = solution.get_next_route(route)) {
+        void add_routes(Solution &solution) {
+            for (auto route = solution.get_first_route(); route != Solution::dummy_route; route = solution.get_next_route(route)) {
                 lookup_and_insert_if_not_exists(solution, route);
             }
         }
 
-        unsigned int lookup_and_insert_if_not_exists(cobra::Solution<maybe_infeasible> &solution, int route) {
+        unsigned int lookup_and_insert_if_not_exists(Solution &solution, int route) {
 
             if (entries_num == SET_PARTITIONING_MAX_POOL_SIZE) {
                 std::cout << "Reached max pool size. Skipping route.\n";

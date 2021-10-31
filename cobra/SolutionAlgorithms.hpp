@@ -6,7 +6,7 @@
 
 namespace cobra {
 
-    void clarke_and_wright(const cobra::Instance &instance, cobra::Solution &solution, const float lambda = 1.0f, int neighbors_num = 1000) {
+    void clarke_and_wright(const Instance &instance, Solution &solution, const float lambda = 1.0f, int neighbors_num = 1000) {
 
         solution.reset();
 
@@ -78,5 +78,20 @@ namespace cobra {
         assert(solution.is_feasible());
     }
 
+
+    void randomly_flip_routes(const Instance &instance, Solution &solution, std::mt19937 &rnd, float probability) {
+
+        auto dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+
+        for (auto i = solution.get_cache_begin(); i != solution.get_cache_end(); i = solution.get_cache_next(i)) {
+            if (i == instance.get_depot() || dist(rnd) > probability) {
+                continue;
+            }
+            const auto route = solution.get_route_index(i);
+            solution.flip_route(route);
+        }
+    }
+
+}  // namespace cobra
 
 #endif

@@ -55,20 +55,20 @@ namespace cobra {
          * Solution constructor. Note that the instance reference ownership is not transferred.
          * @param instance instance
          */
-        explicit Solution(const Instance &instance) : Solution(instance, instance.get_vertices_num()) { }
+        explicit Solution(const Instance &instance_) : Solution(instance_, instance_.get_vertices_num()) { }
 
-        Solution(const Instance &instance, int history_len)
-            : instance(instance),
+        Solution(const Instance &instance_, int history_len)
+            : instance(instance_),
               solution_cost(INFINITY),
-              max_number_routes(instance.get_vertices_num() + 1),
+              max_number_routes(instance_.get_vertices_num() + 1),
               routes_pool(max_number_routes - 1,
                           [](int index) {
                               return index + 1;
                           }),
               depot_node({Solution::dummy_route, 0}),
               routes_list(new RouteNode[max_number_routes]),
-              customers_list(new CustomerNode[instance.get_vertices_num()]),
-              cache(history_len, instance.get_vertices_num()) { }
+              customers_list(new CustomerNode[instance_.get_vertices_num()]),
+              cache(history_len, instance_.get_vertices_num()) { }
 
         /**
          * Generate a new solution from a the deep copy of a source solution.
@@ -1149,8 +1149,8 @@ namespace cobra {
             return cache.end();
         }
 
-        void set_unstaged_changes(LRUCache &cache) {
-            cache = cache;
+        void set_unstaged_changes(LRUCache &cache_) {
+            cache = cache_;
         }
 
         void recompute_costs() {

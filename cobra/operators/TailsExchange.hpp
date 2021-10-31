@@ -8,19 +8,19 @@ namespace cobra {
     template <bool handle_partial_solutions = false>
     class TailsExchange : public AbstractOperator {
     public:
-        TailsExchange(const cobra::Instance &instance, MoveGenerators &moves, float tolerance) : AbstractOperator(instance, moves, tolerance) { }
+        TailsExchange(const Instance &instance_, MoveGenerators &moves_, float tolerance_) : AbstractOperator(instance_, moves_, tolerance_) { }
 
         static constexpr bool is_symmetric = false;
 
     protected:
-        inline void pre_processing(cobra::Solution &solution) override {
+        inline void pre_processing(Solution &solution) override {
 
-            for (int route = solution.get_first_route(); route != cobra::Solution::dummy_route; route = solution.get_next_route(route)) {
+            for (int route = solution.get_first_route(); route != Solution::dummy_route; route = solution.get_next_route(route)) {
                 solution.update_cumulative_route_loads(route);
             }
         }
 
-        inline float compute_cost(const cobra::Solution &solution, const MoveGenerator &move) override {
+        inline float compute_cost(const Solution &solution, const MoveGenerator &move) override {
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
 
@@ -31,12 +31,12 @@ namespace cobra {
             const auto jPrev = solution.get_prev_vertex(jRoute, j);
 
             const auto delta = -this->instance.get_cost(i, iNext) + this->instance.get_cost(i, j) - this->instance.get_cost(jPrev, j) +
-                               this->instance.get_cost(jPrev, iNext) + delta_penalty;
+                               this->instance.get_cost(jPrev, iNext);
 
             return delta;
         }
 
-        bool is_feasible(const cobra::Solution &solution, const MoveGenerator &move) override {
+        bool is_feasible(const Solution &solution, const MoveGenerator &move) override {
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
 
@@ -52,7 +52,7 @@ namespace cobra {
                        this->instance.get_vehicle_capacity();
         }
 
-        inline void execute(cobra::Solution &solution, const MoveGenerator &move, cobra::VertexSet &storage) override {
+        inline void execute(Solution &solution, const MoveGenerator &move, VertexSet &storage) override {
 
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
@@ -88,7 +88,7 @@ namespace cobra {
             }
         }
 
-        void post_processing(__attribute__((unused)) cobra::Solution &solution) override { }
+        void post_processing(__attribute__((unused)) Solution &solution) override { }
 
         std::string get_additional_statistics() override {
             return std::string();
@@ -99,7 +99,7 @@ namespace cobra {
             float seq1rem, seq2rem;
         };
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache12();
             c.v = vertex;
@@ -111,7 +111,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex, int backup) {
 
             auto c = Cache12();
             c.v = vertex;
@@ -139,7 +139,7 @@ namespace cobra {
             float seq1rem;
         };
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache1();
             c.v = vertex;
@@ -149,7 +149,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex, int backup) {
             auto c = Cache1();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);
@@ -164,7 +164,7 @@ namespace cobra {
             float seq2rem;
         };
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache2();
             c.v = vertex;
@@ -174,7 +174,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex, int backup) {
             auto c = Cache2();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);

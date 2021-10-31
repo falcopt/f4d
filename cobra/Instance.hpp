@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "AbstractInstanceParser.hpp"
 #include "Flat2DVector.hpp"
 #include "NonCopyable.hpp"
 
@@ -13,7 +14,6 @@ namespace cobra {
     class Instance : private NonCopyable<Instance> {
 
     public:
-    
         template <template <bool> class Parser, bool round_costs>
         static std::optional<Instance> make(const std::string& path) {
 

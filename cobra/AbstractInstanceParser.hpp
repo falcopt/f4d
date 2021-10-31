@@ -1,6 +1,9 @@
 #ifndef _F4D_ABSTRACTINSTANCEPARSER_HPP_
 #define _F4D_ABSTRACTINSTANCEPARSER_HPP_
 
+#include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -117,6 +120,20 @@ namespace cobra {
             return neighbors;
         }
     };
+
+
+    inline std::vector<std::string> split_line(const std::string& line, char separator) {
+        auto tokens = std::vector<std::string>();
+
+        auto stream = std::istringstream(line);
+        auto token = std::string();
+
+        while (std::getline(stream, token, separator)) {
+            tokens.emplace_back(token);
+        }
+
+        return tokens;
+    }
 
     template <bool round_costs>
     class TSPLIB95 : public AbstractInstanceParser<round_costs> {

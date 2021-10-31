@@ -131,7 +131,7 @@ namespace cobra {
             OperatorInitTable[SPLIT] =  [this, tolerance]() { return new CommonOperator<SplitExchange, handle_partial_solutions,  log_statistics>(instance, moves, tolerance); };
             OperatorInitTable[TAILS] =  [this, tolerance]() { return new CommonOperator<TailsExchange, handle_partial_solutions,  log_statistics>(instance, moves, tolerance); };
             OperatorInitTable[TWOPT] =  [this, tolerance]() { return new CommonOperator<TwoOptExchange, handle_partial_solutions,  log_statistics>(instance, moves, tolerance); };
-            OperatorInitTable[EJCH] =   [this, tolerance]() { return new CommonOperator<EjectionChain, handle_partial_solutions,  log_statistics, 25>(instance, moves, tolerance); };
+            OperatorInitTable[EJCH] =   [this, tolerance]() { return new CommonOperator<EjectionChain, handle_partial_solutions,  log_statistics, false /*dummy*/,25>(instance, moves, tolerance); };
             OperatorInitTable[RE20] =   [this, tolerance]() { return new CommonOperator<RevTwoZeroExchange, handle_partial_solutions,  log_statistics>(instance, moves, tolerance); };
             OperatorInitTable[RE21] =   [this, tolerance]() { return new CommonOperator<RevTwoOneExchange, handle_partial_solutions,  log_statistics>(instance, moves, tolerance); };
             OperatorInitTable[RE22B] =  [this, tolerance]() { return new CommonOperator<RevTwoTwoExchange, handle_partial_solutions,  log_statistics, true>(instance, moves, tolerance); };
@@ -142,8 +142,8 @@ namespace cobra {
             OperatorInitTable[RE32S] =  [this, tolerance]() { return new CommonOperator<RevThreeTwoExchange, handle_partial_solutions,  log_statistics, false>(instance, moves, tolerance); };
             OperatorInitTable[RE33B] =  [this, tolerance]() { return new CommonOperator<RevThreeThreeExchange, handle_partial_solutions,  log_statistics, true>(instance, moves, tolerance); };
             OperatorInitTable[RE33S] =  [this, tolerance]() { return new CommonOperator<RevThreeThreeExchange, handle_partial_solutions,  log_statistics, false>(instance, moves, tolerance); };
-            OperatorInitTable[TLCH] =   [this, tolerance]() { return new CommonOperator<TailChain, handle_partial_solutions, log_statistics, 50>(instance, moves, tolerance); };
-            OperatorInitTable[STCH] =   [this, tolerance]() { return new CommonOperator<SplitChain, handle_partial_solutions, log_statistics, 50>(instance, moves, tolerance); };
+            OperatorInitTable[TLCH] =   [this, tolerance]() { return new CommonOperator<TailChain, handle_partial_solutions, log_statistics, false /*dummy*/, 50>(instance, moves, tolerance); };
+            OperatorInitTable[STCH] =   [this, tolerance]() { return new CommonOperator<SplitChain, handle_partial_solutions, log_statistics, false /*dummy*/, 50>(instance, moves, tolerance); };
 
             for (auto op : operators) {
                 auto ptr = OperatorInitTable[op]();

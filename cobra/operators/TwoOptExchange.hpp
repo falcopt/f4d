@@ -8,14 +8,14 @@ namespace cobra {
     template <bool handle_partial_solutions = false>
     class TwoOptExchange : public AbstractOperator {
     public:
-        TwoOptExchange(const cobra::Instance &instance, MoveGenerators &moves, float tolerance) : AbstractOperator(instance, moves, tolerance) { }
+        TwoOptExchange(const Instance &instance_, MoveGenerators &moves_, float tolerance_) : AbstractOperator(instance_, moves_, tolerance_) { }
 
         static constexpr bool is_symmetric = true;
 
     protected:
-        inline void pre_processing(__attribute__((unused)) cobra::Solution &solution) override { }
+        inline void pre_processing(__attribute__((unused)) Solution &solution) override { }
 
-        inline float compute_cost(const cobra::Solution &solution, const MoveGenerator &move) override {
+        inline float compute_cost(const Solution &solution, const MoveGenerator &move) override {
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
 
@@ -29,7 +29,7 @@ namespace cobra {
                    this->instance.get_cost(jNext, iNext);
         }
 
-        bool is_feasible(const cobra::Solution &solution, const MoveGenerator &move) override {
+        bool is_feasible(const Solution &solution, const MoveGenerator &move) override {
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
 
@@ -39,7 +39,7 @@ namespace cobra {
             return iRoute == jRoute;
         }
 
-        inline void execute(cobra::Solution &solution, const MoveGenerator &move, cobra::VertexSet &storage) override {
+        inline void execute(Solution &solution, const MoveGenerator &move, VertexSet &storage) override {
 
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
@@ -62,7 +62,7 @@ namespace cobra {
             solution.reverse_route_path(iRoute, iNext, j);
         }
 
-        void post_processing(__attribute__((unused)) cobra::Solution &solution) override { }
+        void post_processing(__attribute__((unused)) Solution &solution) override { }
 
         std::string get_additional_statistics() override {
             return std::string();
@@ -73,7 +73,7 @@ namespace cobra {
             float seqrem;
         };
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache12();
             c.v = vertex;
@@ -84,7 +84,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex, int backup) {
 
             auto c = Cache12();
             c.v = vertex;

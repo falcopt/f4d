@@ -1,6 +1,7 @@
 #ifndef _F4D_NEIGHBORACCEPTANCE_HPP_
 #define _F4D_NEIGHBORACCEPTANCE_HPP_
 
+#include <cmath>
 #include <random>
 
 #include "Solution.hpp"
@@ -35,8 +36,7 @@ namespace cobra {
             temperature *= factor;
         }
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor) {
+        bool accept(const Solution &solution, const Solution &neighbor) {
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
         }
 
@@ -70,8 +70,7 @@ namespace cobra {
             temperature *= factor;
         }
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor) {
+        bool accept(const Solution &solution, const Solution &neighbor) {
             return neighbor.get_cost() < solution.get_cost() + temperature;
         }
 
@@ -109,8 +108,7 @@ namespace cobra {
             // b = initial_temperature;
         }
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, int elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, int elapsed_time) {
             const auto temperature = a * std::log(b * static_cast<float>(elapsed_time));
             // const auto temperature = a * static_cast<float>(elapsed_time) + b;
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
@@ -142,8 +140,7 @@ namespace cobra {
             b = std::exp((-initial_temperature * std::log(static_cast<float>(max_time))) / (initial_temperature - final_temperature));
         }
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, int elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, int elapsed_time) {
             const auto temperature = a * std::log(b * static_cast<float>(elapsed_time));
             return neighbor.get_cost() < solution.get_cost() + temperature;
         }
@@ -177,8 +174,7 @@ namespace cobra {
         }
 
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, double elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, double elapsed_time) {
             const double temperature = initial_temperature * std::pow(temp_ratio, elapsed_time / static_cast<float>(period));
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
         }
@@ -216,9 +212,7 @@ namespace cobra {
             sector_duration = sector_duration_;
         }
 
-
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, double elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, double elapsed_time) {
             const auto temperature = get_temperature(elapsed_time);
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
         }
@@ -265,8 +259,7 @@ namespace cobra {
         }
 
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, double elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, double elapsed_time) {
             const auto temperature = get_temperature(elapsed_time);
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
         }
@@ -327,8 +320,7 @@ namespace cobra {
         }
 
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, double elapsed_time) {
+        bool accept(const Solution &solution, const Solution &neighbor, double elapsed_time) {
             const auto temperature = get_temperature(elapsed_time);
             return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
         }
@@ -344,10 +336,10 @@ namespace cobra {
                 init_temps[sect_i] = get_temperature(elapsed_time, sect_i - 1);
             }
             double elapsed_time_sect = elapsed_time - current_sector * time_limits[sect_i];
-            const auto factor = final_temperature / init_temps[sect_i];
-            const auto temperature = init_temps[sect_i] * std::pow(factor, elapsed_time_sect / static_cast<double>(time_limits[sect_i]));
+            const auto factor_ = final_temperature / init_temps[sect_i];
+            const auto temperature = init_temps[sect_i] * std::pow(factor_, elapsed_time_sect / static_cast<double>(time_limits[sect_i]));
             if (sect_i < time_limits.size() - 1) {
-                std::cout << "temperature" << temperature << "= init_temps[sect_i]" << init_temps[sect_i] << " * std::pow(factor" << factor
+                std::cout << "temperature" << temperature << "= init_temps[sect_i]" << init_temps[sect_i] << " * std::pow(factor" << factor_
                           << ", elapsed_time_sect" << elapsed_time_sect << " / static_cast<double>(time_limits[sect_i]" << time_limits[sect_i] << "));\n";
                 std::cout << sect_i << ": InitialTemperature:" << init_temps[sect_i] << ", Temperature: " << temperature << '\n';
             }
@@ -389,10 +381,9 @@ namespace cobra {
         }
 
 
-        template <bool maybe_infeasible>
-        bool accept(const cobra::Solution &solution, const cobra::Solution &neighbor, double elapsed_time) {
-            const auto temperature = get_temperature(elapsed_time);
-            return neighbor.get_cost() < solution.get_cost() - temperature * std::log(uniform_dist(rand_engine));
+        bool accept(const Solution &solution, const Solution &neighbor, double elapsed_time) {
+            const auto temperature_ = get_temperature(elapsed_time);
+            return neighbor.get_cost() < solution.get_cost() - temperature_ * std::log(uniform_dist(rand_engine));
         }
 
         double get_temperature(double elapsed_time) {
@@ -416,4 +407,4 @@ namespace cobra {
 
 }  // namespace cobra
 
-#endif  // COBRA_INCLUDE_COBRA_NEIGHBORACCEPTANCE_HPP_
+#endif

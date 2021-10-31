@@ -14,8 +14,8 @@ namespace cobra {
     template <>
     struct TailChainStatistics<true> {
 
-        cobra::Welford num_tree_nodes;
-        cobra::Welford max_tree_depth;
+        Welford num_tree_nodes;
+        Welford max_tree_depth;
     };
 
     template <bool handle_partial_solution = false, bool log_statistics = false, int max_tail_nodes = 100>
@@ -59,119 +59,8 @@ namespace cobra {
             return &node - nodes.data();
         }
 
-        /*
-       #define HEAP_FIELD(base) ((base).infeas_demand)
-       #define LEFT(xxx) (2 * (xxx) + 1)
-       #define RIGHT(xxx) (2 * (xxx) + 2)
-       #define PARENT(xxx) (((xxx)-1) / 2)
-
-               std::vector<short> heap_array;
-               short heap_len = 0;
-
-               bool is_heap() {
-
-                   for (auto n = 0; n < heap_len; n++) {
-                       if (tail_nodes[heap_array[n]].heap_index != n) { return false; }
-                   }
-
-                   for (auto n = 0; n < heap_len; n++) {
-                       const auto left_index = LEFT(n);
-                       const auto right_index = RIGHT(n);
-                       if (left_index < heap_len) {
-                           if (HEAP_FIELD(tail_nodes[heap_array[n]]) > HEAP_FIELD(tail_nodes[heap_array[left_index]])) { return false; }
-                       }
-                       if (right_index < heap_len) {
-                           if (HEAP_FIELD(tail_nodes[heap_array[n]]) > HEAP_FIELD(tail_nodes[heap_array[right_index]])) { return false; }
-                       }
-                   }
-
-                   return true;
-               }
-
-               void heap_reset() { heap_len = 0; }
-
-               void heap_insert(int relocate_index) {
-                   assert(heap_len < max_tail_nodes);
-                   int heap_index = heap_len;
-
-                   heap_len++;
-
-                   while (heap_index && HEAP_FIELD(tail_nodes[relocate_index]) < HEAP_FIELD(tail_nodes[heap_array[PARENT(heap_index)]])) {
-
-                       const auto parent_index = PARENT(heap_index);
-                       heap_array[heap_index] = heap_array[parent_index];
-                       tail_nodes[heap_array[heap_index]].heap_index = heap_index;
-                       heap_index = parent_index;
-                   }
-
-                   heap_array[heap_index] = relocate_index;
-                   tail_nodes[relocate_index].heap_index = heap_index;
-
-                   assert(is_heap());
-               }
-
-               short heap_get() {
-
-                   assert(heap_len > 0);
-
-                   const auto move_index = heap_array[0];
-
-                   heap_array[0] = heap_array[heap_len - 1];
-                   tail_nodes[heap_array[0]].heap_index = 0;
-                   heap_len--;
-
-                   heap_heapify(0);
-
-                   tail_nodes[move_index].heap_index = -1;
-
-                   assert(is_heap());
-
-                   return move_index;
-               }
-
-               short heap_top() { return heap_array[0]; }
-
-               void heap_heapify(short heap_index) {
-                   short smallest;
-                   auto index = heap_index;
-
-                   while (index <= heap_len) {
-
-                       auto left_index = LEFT(index);
-                       auto right_index = RIGHT(index);
-
-                       if (left_index < heap_len && HEAP_FIELD(tail_nodes[heap_array[left_index]]) < HEAP_FIELD(tail_nodes[heap_array[index]])) {
-                           smallest = left_index;
-                       } else {
-                           smallest = index;
-                       }
-
-                       if (right_index < heap_len && HEAP_FIELD(tail_nodes[heap_array[right_index]]) < HEAP_FIELD(tail_nodes[heap_array[smallest]])) {
-                           smallest = right_index;
-                       }
-
-                       if (smallest != index) {
-
-                           const auto tmp = heap_array[index];
-                           heap_array[index] = heap_array[smallest];
-                           heap_array[smallest] = tmp;
-
-                           tail_nodes[heap_array[index]].heap_index = index;
-                           tail_nodes[heap_array[smallest]].heap_index = smallest;
-
-                           index = smallest;
-                       } else {
-                           break;
-                       }
-                   }
-               }
-
-               void heap_remove_top() { heap_get(); }
-       /*
-               /* ============ */
-
     public:
-        TailChain(const cobra::Instance &instance, MoveGenerators &moves, float tolerance) : AbstractOperator(instance, moves, tolerance) {
+        TailChain(const Instance &instance_, MoveGenerators &moves_, float tolerance_) : AbstractOperator(instance_, moves_, tolerance_) {
 
             tail_nodes.resize(max_tail_nodes + 10);
             feasible_chain = -1;
@@ -181,14 +70,14 @@ namespace cobra {
         static constexpr bool is_symmetric = false;
 
     protected:
-        inline void pre_processing(__attribute__((unused)) cobra::Solution &solution) override {
+        inline void pre_processing(__attribute__((unused)) Solution &solution) override {
 
-            for (int route = solution.get_first_route(); route != cobra::Solution::dummy_route; route = solution.get_next_route(route)) {
+            for (int route = solution.get_first_route(); route != Solution::dummy_route; route = solution.get_next_route(route)) {
                 solution.update_cumulative_route_loads(route);
             }
         }
 
-        inline float compute_cost(const cobra::Solution &solution, const MoveGenerator &move) override {
+        inline float compute_cost(const Solution &solution, const MoveGenerator &move) override {
 
             const auto i = move.get_first_vertex();
             const auto j = move.get_second_vertex();
@@ -203,7 +92,7 @@ namespace cobra {
                    this->instance.get_cost(jPrev, iNext);
         }
 
-        bool is_feasible(const cobra::Solution &solution, const MoveGenerator &generating_move) override {
+        bool is_feasible(const Solution &solution, const MoveGenerator &generating_move) override {
 
             int rni = 0;  // no. of generated nodes
 
@@ -307,7 +196,7 @@ namespace cobra {
                 }
             }
 
-        end:
+            // end:
             if constexpr (log_statistics) {
                 auto max_depth = 0;
                 for (auto idx = 0; idx < rni; idx++) {
@@ -348,13 +237,13 @@ namespace cobra {
             auto min_capacity = this->instance.get_demand_sum() - solution.get_routes_num() * capacity;
 
             // Convenience Lambda to generalize for both directions
-            const auto next_vertex = [&](TailNode &curr) {
+            /*const auto next_vertex = [&](TailNode &curr) {
                 if constexpr (direction) {
                     return curr.iNext;
                 } else {
                     return solution.get_prev_vertex(curr.i);
                 }
-            };
+            };*/
 
             auto &curr = tail_nodes[curr_index];
 
@@ -375,7 +264,7 @@ namespace cobra {
                 const auto iPrev = solution.get_prev_vertex(i);
                 const auto iDelta = this->instance.get_cost(i, iNext);
 
-                while (curr.next_movegen_index < this->moves.get_move_generator_indices_involving_1st(i).size()) {
+                while (curr.next_movegen_index < static_cast<int>(this->moves.get_move_generator_indices_involving_1st(i).size())) {
 
                     // make sure if we resume, we don't re-consider the same move gen
                     const auto move_index = this->moves.get_move_generator_indices_involving_1st(i)[curr.next_movegen_index++];
@@ -572,30 +461,31 @@ namespace cobra {
         }
 
 
-        inline void execute(cobra::Solution &solution, __attribute__((unused)) const MoveGenerator &p_move, cobra::VertexSet &storage) override {
+        inline void execute(Solution &solution, __attribute__((unused)) const MoveGenerator &p_move, VertexSet &storage) override {
 
             // Apply the best chain after storing its vertices
             const auto best_chain_index = feasible_chain;
-            auto &best_chain = tail_nodes[best_chain_index];
+
 
 #ifndef NDEBUG
+            auto &best_chain = tail_nodes[best_chain_index];
             auto expected_delta = best_chain.delta_sum;
             auto old_cost = solution.get_cost();
 #endif
             // TODO: manca la parte dove si riempie lo storage"
 
-            auto moves = std::vector<int>();
+            auto tail_moves = std::vector<int>();
             for (auto ptr = best_chain_index; ptr != -1; ptr = tail_nodes[ptr].predecessor) {
-                moves.emplace_back(ptr);
+                tail_moves.emplace_back(ptr);
             }
 
-            /* if (moves.size() > 1) {
-                cobra::store_to_file(this->instance, solution, "./a.sol");
+            /* if (tail_moves.size() > 1) {
+                store_to_file(this->instance, solution, "./a.sol");
                 std::cout << "a\n";
             } */
 
-            for (auto n = static_cast<int>(moves.size()) - 1; n >= 0; --n) {
-                const auto ptr = moves[n];
+            for (auto n = static_cast<int>(tail_moves.size()) - 1; n >= 0; --n) {
+                const auto ptr = tail_moves[n];
                 const auto move = tail_nodes[ptr].move;
                 const auto i = move->get_first_vertex();
                 const auto j = move->get_second_vertex();
@@ -661,10 +551,10 @@ namespace cobra {
             assert(std::fabs(old_cost + expected_delta - solution.get_cost()) < 0.01f);
 
             assert(solution.is_feasible());
-            // if (moves.size() > 1) std::cout << "Applied TailChain of size " << moves.size() << "!!!!!\n";
+            // if (tail_moves.size() > 1) std::cout << "Applied TailChain of size " << tail_moves.size() << "!!!!!\n";
         }
 
-        void post_processing(__attribute__((unused)) cobra::Solution &solution) override {
+        void post_processing(__attribute__((unused)) Solution &solution) override {
             // REMOVE
             // std::cout << " Called: " << called;
             // std::cout << ", Current FeasChainLenAVG: " << static_cast<double>(feasChainLenSum) / static_cast<double>(foudFeas);
@@ -694,7 +584,7 @@ namespace cobra {
             float seq1rem, seq2rem;
         };
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache12();
             c.v = vertex;
@@ -707,7 +597,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache12 prepare_cache12(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache12 prepare_cache12(const Solution &solution, int vertex, int backup) {
 
             auto c = Cache12();
             c.v = vertex;
@@ -736,7 +626,7 @@ namespace cobra {
             float seq1rem;
         };
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache1();
             c.v = vertex;
@@ -746,7 +636,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache1 prepare_cache1(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache1 prepare_cache1(const Solution &solution, int vertex, int backup) {
             auto c = Cache1();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);
@@ -761,7 +651,7 @@ namespace cobra {
             float seq2rem;
         };
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex) {
             assert(vertex != this->instance.get_depot());
             auto c = Cache2();
             c.v = vertex;
@@ -772,7 +662,7 @@ namespace cobra {
             return c;
         }
 
-        inline Cache2 prepare_cache2(const cobra::Solution &solution, int vertex, int backup) {
+        inline Cache2 prepare_cache2(const Solution &solution, int vertex, int backup) {
             auto c = Cache2();
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);

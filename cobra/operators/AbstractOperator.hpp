@@ -23,10 +23,10 @@ namespace cobra {
         float old_solution_cost = 0.0f;
 
         // statistics
-        cobra::Welford affected_vertices_size;
-        cobra::Welford num_checked_moves;
-        cobra::Welford num_applied_moves;
-        cobra::Welford num_checks_before_application;
+        Welford affected_vertices_size;
+        Welford num_checked_moves;
+        Welford num_applied_moves;
+        Welford num_checks_before_application;
 
         unsigned long long int successful_descent_applications = 0;
         long double total_improvement = 0.0;
@@ -34,24 +34,24 @@ namespace cobra {
 
     class AbstractOperator : public NonCopyable<AbstractOperator> {
     public:
-        AbstractOperator(const cobra::Instance& instance_, MoveGenerators& moves_, float tolerance_)
+        AbstractOperator(const Instance& instance_, MoveGenerators& moves_, float tolerance_)
             : instance(instance_), moves(moves_), heap(moves.get_heap()), tolerance(tolerance_), update_bits(moves_.get_update_bits()) { }
 
-        virtual bool apply_rough_best_improvement(cobra::Solution& solution) = 0;
-        virtual bool apply_best_improvement(cobra::Solution& solution) = 0;
+        virtual bool apply_rough_best_improvement(Solution& solution) = 0;
+        virtual bool apply_best_improvement(Solution& solution) = 0;
         virtual ~AbstractOperator() = default;
 
     protected:
-        virtual void pre_processing(cobra::Solution& solution) = 0;
-        virtual float compute_cost(const cobra::Solution& solution, const MoveGenerator& move) = 0;
+        virtual void pre_processing(Solution& solution) = 0;
+        virtual float compute_cost(const Solution& solution, const MoveGenerator& move) = 0;
 
-        virtual bool is_feasible(const cobra::Solution& solution, const MoveGenerator& move) = 0;
-        virtual void execute(cobra::Solution& solution, const MoveGenerator& move, cobra::VertexSet& storage) = 0;
-        virtual void post_processing(cobra::Solution& solution) = 0;
+        virtual bool is_feasible(const Solution& solution, const MoveGenerator& move) = 0;
+        virtual void execute(Solution& solution, const MoveGenerator& move, VertexSet& storage) = 0;
+        virtual void post_processing(Solution& solution) = 0;
         virtual std::string get_additional_statistics() = 0;
 
     protected:
-        const cobra::Instance& instance;
+        const Instance& instance;
         MoveGenerators& moves;
         MoveGeneratorsHeap& heap;
         const float tolerance;
@@ -64,12 +64,12 @@ namespace cobra {
         using T = Tmpl<handle_partial_solutions, Args...>;
 
     private:
-        cobra::VertexSet affected_vertices;
         TimestampGenerator& timegen;
+        VertexSet affected_vertices;
 
 
     private:
-        inline void symmetric_init(const cobra::Solution& solution) {
+        inline void symmetric_init(const Solution& solution) {
             const auto currenttime = timegen.get() + 1;
             auto& vtimestamp = T::moves.get_vertex_timestamp();
 
@@ -163,7 +163,7 @@ namespace cobra {
             timegen.increment();
         }
 
-        inline void asymmetric_init(const cobra::Solution& solution) {
+        inline void asymmetric_init(const Solution& solution) {
 
             const auto currenttime = timegen.get() + 1;
 
@@ -270,7 +270,7 @@ namespace cobra {
             timegen.increment();
         }
 
-        inline void initialize_descriptors(const cobra::Solution& solution) {
+        inline void initialize_descriptors(const Solution& solution) {
 
             if constexpr (T::is_symmetric) {
                 symmetric_init(solution);
@@ -279,7 +279,7 @@ namespace cobra {
             }
         }
 
-        inline void asymmetric_update(const cobra::Solution& solution) {
+        inline void asymmetric_update(const Solution& solution) {
 
             const auto currenttime = timegen.get() + 1;
 
@@ -391,8 +391,8 @@ namespace cobra {
                         }
 
                         if (vtimestamp[j] != currenttime ||  // j has not already been processed
-                            vtimestamp[j] == currenttime &&
-                                !T::update_bits.at(j, UPDATE_BITS_SECOND))  // j was processed but (i, j) was not updated because not required
+                            (vtimestamp[j] == currenttime &&
+                             !T::update_bits.at(j, UPDATE_BITS_SECOND)))  // j was processed but (i, j) was not updated because not required
                         {
 
                             const auto jcache = j == T::instance.get_depot() ? T::prepare_cache2(solution, j, i) : T::prepare_cache2(solution, j);
@@ -418,8 +418,8 @@ namespace cobra {
                         }
 
                         if (vtimestamp[j] != currenttime ||  // j has not already been processed
-                            vtimestamp[j] == currenttime &&
-                                !T::update_bits.at(j, UPDATE_BITS_FIRST))  // j was processed but (j, i) was not updated because not required
+                            (vtimestamp[j] == currenttime &&
+                             !T::update_bits.at(j, UPDATE_BITS_FIRST)))  // j was processed but (j, i) was not updated because not required
                         {
 
                             const auto jcache = j == T::instance.get_depot() ? T::prepare_cache1(solution, j, i) : T::prepare_cache1(solution, j);
@@ -510,8 +510,8 @@ namespace cobra {
                         }
 
                         if (vtimestamp[j] != currenttime ||  // j has not already been processed
-                            vtimestamp[j] == currenttime &&
-                                !T::update_bits.at(j, UPDATE_BITS_SECOND))  // j was processed but (i, j) was not updated because not required
+                            (vtimestamp[j] == currenttime &&
+                             !T::update_bits.at(j, UPDATE_BITS_SECOND)))  // j was processed but (i, j) was not updated because not required
                         {
 
                             const auto icache = T::prepare_cache1(solution, i, j);
@@ -535,8 +535,8 @@ namespace cobra {
                         }
 
                         if (vtimestamp[j] != currenttime ||  // j has not already been processed
-                            vtimestamp[j] == currenttime &&
-                                !T::update_bits.at(j, UPDATE_BITS_FIRST))  // j was processed but (j, i) was not updated because not required
+                            (vtimestamp[j] == currenttime &&
+                             !T::update_bits.at(j, UPDATE_BITS_FIRST)))  // j was processed but (j, i) was not updated because not required
                         {
 
                             const auto icache = T::prepare_cache2(solution, i, j);
@@ -553,7 +553,7 @@ namespace cobra {
             timegen.increment();
         }
 
-        inline void symmetric_update(const cobra::Solution& solution) {
+        inline void symmetric_update(const Solution& solution) {
 
             const auto currenttime = timegen.get() + 1;
 
@@ -658,7 +658,7 @@ namespace cobra {
             timegen.increment();
         }
 
-        inline void descriptors_update(const cobra::Solution& solution) {
+        inline void descriptors_update(const Solution& solution) {
 
             if constexpr (T::is_symmetric) {
                 symmetric_update(solution);
@@ -668,10 +668,10 @@ namespace cobra {
         }
 
     public:
-        CommonOperator(const cobra::Instance& instance_, MoveGenerators& moves_, float tolerance_)
+        CommonOperator(const Instance& instance_, MoveGenerators& moves_, float tolerance_)
             : T(instance_, moves_, tolerance_), timegen(moves_.get_timestamp_generator()), affected_vertices(instance_.get_vertices_num()) { }
 
-        bool apply_rough_best_improvement(cobra::Solution& solution) {
+        bool apply_rough_best_improvement(Solution& solution) {
 
             T::heap.reset();
 
@@ -748,7 +748,7 @@ namespace cobra {
             return improved;
         }
 
-        bool apply_best_improvement(cobra::Solution& solution) {
+        bool apply_best_improvement(Solution& solution) {
 
             T::heap.reset();
 
