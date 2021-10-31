@@ -55,7 +55,7 @@ namespace cobra {
 
     class Statistics {
 
-        template <bool>
+        template <bool, bool>
         friend class RandomizedVariableNeighborhoodDescent;
 
         std::vector<std::pair<float,                                     // base objective value (e.g. current solution value)
