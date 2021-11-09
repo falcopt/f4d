@@ -11,9 +11,6 @@ namespace cobra {
     template <int maxSize>
     class BitMatrix : NonCopyable<BitMatrix<maxSize>> {
 
-        // std::vector<std::vector<bool>> data;
-        // std::vector<std::vector<int>> fast_access_with_duplicates;  // store entries set to 1, without caring for duplicates
-
         std::vector<SmallFlatSet<unsigned short, static_cast<unsigned short>(~0), maxSize>> data;
 
     public:

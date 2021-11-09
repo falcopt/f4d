@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <iostream>
 #include <optional>
-#include <utility>
 #include <string>
+#include <utility>
 
 /* Default parameters */
 #define DEFAULT_OUTPATH ("./")
@@ -15,6 +15,7 @@
 #define DEFAULT_CW_NEIGHBORS (100)
 #define DEFAULT_ROUTEMIN_ITERATIONS (1000)
 #define DEFAULT_COREOPT_ITERATIONS (100000)
+#define DEFAULT_FASTOPT_ITERATIONS (1000000)
 #define DEFAULT_SPARSIFICATION_RULE1_NEIGHBORS (25)
 #define DEFAULT_SPARSIFICATION_FACTOR (0.25f)
 #define DEFAULT_SPARSIFICATION_MULTIPLIER (0.50f)
@@ -37,6 +38,7 @@
 #define TOKEN_SOLUTION_CACHE_HISTORY ("--cache")
 #define TOKEN_ROUTEMIN_ITERATIONS ("--routemin-iterations")
 #define TOKEN_COREOPT_ITERATIONS ("--coreopt-iterations")
+#define TOKEN_FASTOPT_ITERATIONS ("--fastopt-iterations")
 #define TOKEN_SPARSIFICATION_FACTOR ("--granular-gamma-base")
 #define TOKEN_SPARSIFICATION_MULTIPLIER ("--granular-delta")
 #define TOKEN_SHAKING_LB_FACTOR ("--shaking-lower-bound")
@@ -60,6 +62,7 @@ private:
     int cw_neighbors = DEFAULT_CW_NEIGHBORS;
     int routemin_iterations = DEFAULT_ROUTEMIN_ITERATIONS;
     int coreopt_iterations = DEFAULT_COREOPT_ITERATIONS;
+    int fastopt_iterations = DEFAULT_FASTOPT_ITERATIONS;
     int sparsification_rule_neighbors = DEFAULT_SPARSIFICATION_RULE1_NEIGHBORS;
     float gamma_base = DEFAULT_SPARSIFICATION_FACTOR;
     float delta = DEFAULT_SPARSIFICATION_MULTIPLIER;
@@ -88,6 +91,9 @@ public:
     }
     inline int get_coreopt_iterations() const {
         return coreopt_iterations;
+    }
+    inline int get_fastopt_iterations() const {
+        return fastopt_iterations;
     }
     inline int get_sparsification_rule_neighbors() const {
         return sparsification_rule_neighbors;
@@ -151,6 +157,8 @@ public:
             routemin_iterations = std::stoi(value);
         } else if (key == TOKEN_COREOPT_ITERATIONS) {
             coreopt_iterations = std::stoi(value);
+        } else if (key == TOKEN_FASTOPT_ITERATIONS) {
+            fastopt_iterations = std::stoi(value);
         } else if (key == TOKEN_SPARSIFICATION_FACTOR) {
             gamma_base = std::stof(value);
         } else if (key == TOKEN_SPARSIFICATION_MULTIPLIER) {
