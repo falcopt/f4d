@@ -86,8 +86,8 @@ auto main(int argc, char* argv[]) -> int {
 
     const auto round_costs = param.needs_round_costs();
 
-    auto maybe_instance = (round_costs ? cobra::Instance::make<cobra::TSPLIB95, true>(param.get_instance_path())
-                                       : cobra::Instance::make<cobra::TSPLIB95, false>(param.get_instance_path()));
+    auto maybe_instance = (round_costs ? cobra::Instance::make<true>(param.get_instance_path())
+                                       : cobra::Instance::make<false>(param.get_instance_path()));
 
 
     if (!maybe_instance) {

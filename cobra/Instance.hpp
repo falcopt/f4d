@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "AbstractInstanceParser.hpp"
 #include "Flat2DVector.hpp"
+#include "InstanceParser.hpp"
 #include "NonCopyable.hpp"
 
 namespace cobra {
@@ -14,12 +14,10 @@ namespace cobra {
     class Instance : private NonCopyable<Instance> {
 
     public:
-        template <template <bool> class Parser, bool round_costs>
+        template <bool round_costs>
         static std::optional<Instance> make(const std::string& path) {
 
-            static_assert(std::is_base_of<AbstractInstanceParser<round_costs>, Parser<round_costs>>::value, "Parser not derived from AbstractInstanceParser");
-
-            auto parser = Parser<round_costs>(path);
+            auto parser = InstanceParser<round_costs>(path);
             auto ok = parser.parse();
 
             if (ok) {
@@ -179,7 +177,7 @@ namespace cobra {
 
     private:
         template <bool round_costs>
-        explicit Instance(AbstractInstanceParser<round_costs>& parser) {
+        explicit Instance(InstanceParser<round_costs>& parser) {
 
             // Move the properties from parser to instance
 
