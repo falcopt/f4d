@@ -22,6 +22,16 @@ set(SOURCE main.cpp
         arg_parser.cpp 
         greedy_bpp.cpp)
 
+# Find CPLEX
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+find_package(CPLEX)
+if (CPLEX_FOUND)
+    include_directories(${CPLEX_INCLUDE_DIRS})
+    message(${CPLEX_INCLUDE_DIRS})
+    set(LIBRARIES ${LIBRARIES} ${CPLEX_LIBRARIES} pthread dl m)
+    add_definitions(-DIL_STD)
+endif(CPLEX_FOUND)
+
 option(ENABLE_VERBOSE "Enable verbose output" OFF)
 option(ENABLE_GUI "Enable graphical interface" OFF)
 

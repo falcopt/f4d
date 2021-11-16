@@ -7,9 +7,11 @@
 #include <unordered_set>
 #include <vector>
 
+#include "BidirIterator.hpp"
 #include "FixedSizeValueStack.hpp"
 #include "Instance.hpp"
 #include "LRUCache.hpp"
+#include "Range.hpp"
 #include "macro.hpp"
 
 namespace cobra {
@@ -195,6 +197,19 @@ namespace cobra {
         inline int get_route_index(const int customer) const {
             assert(customer != instance.get_depot());
             return customers_list[customer].route_ptr;
+        }
+
+        /**
+         * Returns and iterable object representing a route.
+         * @param customer
+         * @return route
+         */
+        inline auto get_route_customers(const int route) const {
+            CustomerPair beg_p, end_p;
+            beg_p.cust = customers_list + routes_list[route].first_customer;
+            end_p.cust = customers_list;  // depot rigth?
+            beg_p.list = end_p.list = customers_list;
+            return RouteCustomerList(beg_p, end_p);
         }
 
         /**
@@ -1207,6 +1222,38 @@ namespace cobra {
             int prev;
             int size;
         };
+
+        struct CustomerPair {
+            CustomerNode *cust;
+            CustomerNode *list;
+            bool operator==(const CustomerPair &other) const {
+                return cust == other.cust;
+            }
+            bool operator!=(const CustomerPair &other) const {
+                return cust != other.cust;
+            }
+        };
+
+        struct NextCustomer {
+            constexpr CustomerPair operator()(CustomerPair t) const {
+                return {t.list + t.cust->next, t.list};
+            }
+        };
+
+        struct PrevCustomer {
+            constexpr CustomerPair operator()(CustomerPair t) const {
+                return {t.list + t.cust->prev, t.list};
+            }
+        };
+
+        struct CustomerId {
+            constexpr int operator()(CustomerPair t) const {
+                return t.cust - t.list - 1;
+            }
+        };
+
+        using RouteIter = cav::BidirIterator<CustomerPair, NextCustomer, PrevCustomer, CustomerId>;
+        using RouteCustomerList = cav::Range<RouteIter>;
 
         const cobra::Instance &instance;
         double solution_cost;

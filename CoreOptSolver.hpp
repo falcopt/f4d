@@ -9,6 +9,7 @@
 #include "cobra/MoveGenerators.hpp"
 #include "cobra/NeighborAcceptance.hpp"
 #include "cobra/PrettyPrinter.hpp"
+#include "cobra/SPH.hpp"
 #include "cobra/Solution.hpp"
 #include "cobra/Welford.hpp"
 
@@ -267,7 +268,8 @@ public:
 
         auto lk = LinKernighan(instance, param.get_tolerance());
 
-        // auto pool = cobra::RouteSet(instance);
+        std::vector<sph::idx_t> BestRoutes;
+        sph::SPHeuristic sph(instance.get_vertices_num() - 1);
 
         for (auto iter = 0; iter < coreopt_iterations; iter++) {
 
@@ -322,9 +324,21 @@ public:
             }
 #endif
 
+            if (neighbor.get_cost() >= best_solution.get_cost()) {
+                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route)) {
+                    auto r_customers = neighbor.get_route_customers(route);
+                    sph.add_column(r_customers.begin(), r_customers.end(), neighbor.get_route_cost(route), neighbor.get_cost());
+                }
+            }
 
             if (neighbor.get_cost() < best_solution.get_cost()) {
 
+                BestRoutes.clear();
+                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route)) {
+                    auto r_customers = neighbor.get_route_customers(route);
+                    sph::idx_t col_idx = sph.add_column(r_customers.begin(), r_customers.end(), neighbor.get_route_cost(route), neighbor.get_cost());
+                    BestRoutes.push_back(col_idx);
+                }
 
 #ifdef VERBOSE
                 printer.set_style(cobra::PrettyPrinter::BACKGROUND_CYAN);
@@ -335,8 +349,6 @@ public:
 
                 lk.apply(neighbor);
                 assert(neighbor.is_feasible());
-
-                // pool.add_routes(neighbor);
 
 #ifdef VERBOSE
                 const auto new_cost = neighbor.get_cost();
@@ -439,6 +451,11 @@ public:
             }
 #endif
         }
+
+        std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
+        sph.set_timelimit(180);
+        BestRoutes = sph.solve<500000>(BestRoutes);
+        // TODO: transform bach columns to cobra::Solution
 
         return best_solution;
     }
