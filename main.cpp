@@ -192,7 +192,7 @@ auto main(int argc, char* argv[]) -> int {
         std::cout << "Starting solution: obj = " << solution.get_cost() << ", n. of routes = " << solution.get_routes_num() << ".\n";
         partial_time_begin = std::chrono::high_resolution_clock::now();
 #endif
-        solution = routemin(instance, solution, rand_engine, move_generators, kmin, routemin_iterations, tolerance, round_costs);
+        solution = routemin(instance, solution, rand_engine, move_generators, kmin, routemin_iterations, tolerance);
 #ifdef VERBOSE
         std::cout << "Final solution: obj = " << solution.get_cost() << ", n. routes = " << solution.get_routes_num() << "\n";
         partial_time_end = std::chrono::high_resolution_clock::now();
