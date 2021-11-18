@@ -3295,8 +3295,55 @@ namespace sph {
          *          each original column index to the index inside Instance.
          */
         template <typename UniqueColContainer>
-        std::vector<idx_t> inline add_columns(const UniqueColContainer &new_cols) {
+        inline std::vector<idx_t> add_columns(const UniqueColContainer &new_cols) {
             return inst.add_columns(new_cols);
+        }
+
+        /**
+         * @brief Adds a complete solution in the pool, and store the columns indexes as
+         * warm start if it is the best solution so far.
+         *
+         * @tparam UniqueColContainer Container type.
+         * @param new_cols New columns container.
+         * @return std::vector<idx_t> Vector of length costs.size(), mapping
+         *          each original column index to the index inside Instance.
+         */
+        inline const std::vector<idx_t> &add_solution(const std::vector<real_t> &costs, const std::vector<idx_t> &matbeg,
+                                                      const std::vector<idx_t> &matval) {
+            real_t sol_cost = std::reduce(costs.begin(), costs.end());
+            std::vector<real_t> sol_costs(costs.size(), sol_cost);
+            std::vector<idx_t> candidate = inst.add_columns(costs, sol_costs, matbeg, matval);
+            if (sol_cost < warmstart_cost) {
+                warmstart_cost = sol_cost;
+                warmstart = std::move(candidate);
+            }
+            return warmstart;
+        }
+
+        /**
+         * @brief Adds a complete solution in the pool, and store the columns indexes as
+         * warm start if it is the best solution so far.
+         *
+         * @tparam UniqueColContainer Container type.
+         * @param new_cols New columns container.
+         * @return std::vector<idx_t> Vector of length costs.size(), mapping
+         *          each original column index to the index inside Instance.
+         */
+        template <typename UniqueColContainer>
+        inline const std::vector<idx_t> &add_solution(const std::vector<real_t> &costs, const UniqueColContainer &new_cols_rows) {
+
+            real_t sol_cost = std::reduce(costs.begin(), costs.end());
+            auto cost_it = costs.begin();
+            std::vector<UniqueCol> new_cols;
+            for (auto &col : new_cols_rows) {
+                new_cols.emplace_back(col.begin(), col.end(), *cost_it++, sol_cost);
+            }
+            std::vector<idx_t> candidate = inst.add_columns(std::move(new_cols));
+            if (sol_cost < warmstart_cost) {
+                warmstart_cost = sol_cost;
+                warmstart = std::move(candidate);
+            }
+            return warmstart;
         }
 
         /**
@@ -3314,7 +3361,7 @@ namespace sph {
          * @return std::vector<idx_t> Vector of length costs.size(), mapping
          *          each original column index to the index inside Instance.
          */
-        std::vector<idx_t> inline add_columns(const std::vector<real_t> &costs, const std::vector<real_t> &sol_costs,
+        inline std::vector<idx_t> add_columns(const std::vector<real_t> &costs, const std::vector<real_t> &sol_costs,
                                               const std::vector<idx_t> &matbeg, const std::vector<idx_t> &matval) {
             return inst.add_columns(costs, sol_costs, matbeg, matval);
         }
@@ -3365,18 +3412,44 @@ namespace sph {
          * @return std::vector<idx_t> Best solution found.
          */
         template <unsigned long ROUTES_HARD_CAP = INST_HARD_CAP, typename KeepColStrategy = SetPar_ActiveColTest>
-        std::vector<idx_t> inline solve([[maybe_unused]] const std::vector<idx_t> &S_init) {
+        inline const std::vector<idx_t> &solve(const std::vector<idx_t> &S_init) {
+            real_t S_init_cost = 0.0;
+            if (!S_init.empty()) {
+                S_init_cost = 0.0;
+                for (idx_t j : S_init)
+                    S_init_cost += inst.get_col(j).get_cost();
+            }
+            if (S_init_cost < warmstart_cost) {
+                warmstart_cost = S_init_cost;
+                warmstart = S_init;
+            }
+            return solve<ROUTES_HARD_CAP, KeepColStrategy>();
+            ;
+        }
+
+        /**
+         * @brief See "inline std::vector<idx_t> solve(const std::vector<idx_t> &S_init)"
+         *
+         * @tparam ROUTES_HARD_CAP
+         * @tparam KeepColStrategy
+         * @return std::vector<idx_t>
+         */
+        template <unsigned long ROUTES_HARD_CAP = INST_HARD_CAP, typename KeepColStrategy = SetPar_ActiveColTest>
+        inline const std::vector<idx_t> &solve() {
             SPH_VERBOSE(0) { fmt::print(" Set Partitioning Heuristic: \n"); }
             SPH_DEBUG { fmt::print(" Warning: running in debug mode\n"); }
             SPH_VERBOSE(0) { fmt::print(" SP Instance size: {}x{}\n", inst.get_nrows(), inst.get_ncols()); }
+            warmstart = refinement.solve<ROUTES_HARD_CAP, KeepColStrategy>(warmstart);
 
-            return refinement.solve<ROUTES_HARD_CAP, KeepColStrategy>(S_init);
+            return warmstart;
         }
 
     private:
         Instance inst;
         std::mt19937 rnd;
         Refinement refinement;
+        std::vector<idx_t> warmstart;
+        real_t warmstart_cost;
     };
 
 }  // namespace sph

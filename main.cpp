@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <iostream>
 
+#define VERBOSE_LEVEL 1 //SPH verbose level
+
 #include "CoreOptSolver.hpp"
 #include "LinKernighan.hpp"
 #include "RuinAndRecreate.hpp"
@@ -86,8 +88,7 @@ auto main(int argc, char* argv[]) -> int {
 
     const auto round_costs = param.needs_round_costs();
 
-    auto maybe_instance = (round_costs ? cobra::Instance::make<true>(param.get_instance_path())
-                                       : cobra::Instance::make<false>(param.get_instance_path()));
+    auto maybe_instance = (round_costs ? cobra::Instance::make<true>(param.get_instance_path()) : cobra::Instance::make<false>(param.get_instance_path()));
 
 
     if (!maybe_instance) {
@@ -201,11 +202,12 @@ auto main(int argc, char* argv[]) -> int {
         assert(solution.is_feasible());
     }
 
-    CoreOptSolver cos(instance, param, rand_engine, move_generators, local_search);
+    sph::SPHeuristic sph(instance.get_vertices_num() - 1);
+    CoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
 
 
     const auto fastopt_iterations = param.get_fastopt_iterations();
-    solution = cos.fastopt(solution, fastopt_iterations);
+    auto best_solution = cos.fastopt(solution, fastopt_iterations);
 #ifdef VERBOSE
     std::cout << "\n";
     std::cout << "Final solution found:\n";
@@ -213,8 +215,21 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
     const auto coreopt_iterations = param.get_coreopt_iterations();
-    auto best_solution = cos.coreopt(solution, coreopt_iterations);
-
+    int SPHPeriod = 4;
+    auto init_solution = best_solution;
+    for (int i = 1; i <= 10; ++i) {
+        solution = cos.coreopt(init_solution, coreopt_iterations);
+        if (solution.get_cost() < best_solution.get_cost()) {
+            best_solution = solution;
+        }
+        if (i % SPHPeriod == 0) {
+            std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
+            sph.set_timelimit(120);
+            sph.solve<500000>();
+            // TODO: transform bach columns to cobra::Solution
+            init_solution = best_solution;
+        }
+    }
     const auto global_time_end = std::chrono::high_resolution_clock::now();
 
 #ifdef VERBOSE

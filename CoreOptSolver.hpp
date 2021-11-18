@@ -20,8 +20,14 @@
 class CoreOptSolver {
 public:
     CoreOptSolver(const cobra::Instance& instance_, const Parameters& params_, std::mt19937& rnd_, cobra::MoveGenerators& moves_,
+                  cobra::VariableNeighborhoodDescentComposer& local_search_, sph::SPHeuristic& sph_)
+        : CoreOptSolver(instance_, params_, rnd_, moves_, local_search_) {
+        sph = std::addressof(sph_);
+    }
+
+    CoreOptSolver(const cobra::Instance& instance_, const Parameters& params_, std::mt19937& rnd_, cobra::MoveGenerators& moves_,
                   cobra::VariableNeighborhoodDescentComposer& local_search_)
-        : instance(instance_), param(params_), rand_engine(rnd_), rr(instance, rnd_), move_generators(moves_), local_search(local_search_) {
+        : instance(instance_), param(params_), rand_engine(rnd_), rr(instance, rnd_), move_generators(moves_), local_search(local_search_), sph(nullptr) {
 
         mean_arc_cost = 0.0;
         for (auto i = instance.get_vertices_begin(); i < instance.get_vertices_end() - 1; i++) {
@@ -46,6 +52,8 @@ public:
 
         auto solution = warm_start;
         auto best_solution = solution;
+
+        std::vector<sph::real_t> routes_cost;
 
         auto ruined_customers = std::vector<int>();
 
@@ -116,6 +124,12 @@ public:
                 renderer.draw(best_solution, neighbor.get_unstaged_changes(), move_generators);
             }
 #endif
+            if (sph) {
+                routes_cost.clear();
+                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route))
+                    routes_cost.push_back(neighbor.get_route_cost(route));
+                sph->add_solution(routes_cost, neighbor.get_routes());
+            }
 
             if (neighbor.get_cost() < best_solution.get_cost()) {
                 best_solution = neighbor;
@@ -201,6 +215,8 @@ public:
         auto solution = warm_start;
         auto best_solution = solution;
 
+        std::vector<sph::real_t> routes_cost;
+
         const auto gamma_base = param.get_gamma_base();
         auto gamma = std::vector<float>(instance.get_vertices_num(), gamma_base);
         auto gamma_counter = std::vector<int>(instance.get_vertices_num(), 0);
@@ -268,9 +284,6 @@ public:
 
         auto lk = LinKernighan(instance, param.get_tolerance());
 
-        std::vector<sph::idx_t> BestRoutes;
-        sph::SPHeuristic sph(instance.get_vertices_num() - 1);
-
         for (auto iter = 0; iter < coreopt_iterations; iter++) {
 
             auto neighbor = solution;
@@ -323,22 +336,14 @@ public:
                 renderer.draw(best_solution, neighbor.get_unstaged_changes(), move_generators);
             }
 #endif
-
-            if (neighbor.get_cost() >= best_solution.get_cost()) {
-                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route)) {
-                    auto r_customers = neighbor.get_route_customers(route);
-                    sph.add_column(r_customers.begin(), r_customers.end(), neighbor.get_route_cost(route), neighbor.get_cost());
-                }
+            if (sph) {
+                routes_cost.clear();
+                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route))
+                    routes_cost.push_back(neighbor.get_route_cost(route));
+                sph->add_solution(routes_cost, neighbor.get_routes());
             }
 
             if (neighbor.get_cost() < best_solution.get_cost()) {
-
-                BestRoutes.clear();
-                for (auto route = neighbor.get_first_route(); route != cobra::Solution::dummy_route; route = neighbor.get_next_route(route)) {
-                    auto r_customers = neighbor.get_route_customers(route);
-                    sph::idx_t col_idx = sph.add_column(r_customers.begin(), r_customers.end(), neighbor.get_route_cost(route), neighbor.get_cost());
-                    BestRoutes.push_back(col_idx);
-                }
 
 #ifdef VERBOSE
                 printer.set_style(cobra::PrettyPrinter::BACKGROUND_CYAN);
@@ -452,11 +457,6 @@ public:
 #endif
         }
 
-        std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
-        sph.set_timelimit(180);
-        BestRoutes = sph.solve<500000>(BestRoutes);
-        // TODO: transform bach columns to cobra::Solution
-
         return best_solution;
     }
 
@@ -469,6 +469,7 @@ private:
     cobra::VariableNeighborhoodDescentComposer& local_search;
     double mean_arc_cost;
     std::vector<int> omega;
+    sph::SPHeuristic* sph;
 
     void print_progress_fast(cobra::PrettyPrinter& printer, int iter, const int iterations,
                              std::chrono::time_point<std::chrono::high_resolution_clock>& main_opt_loop_begin_time, cobra::SimulatedAnnealing& sa,

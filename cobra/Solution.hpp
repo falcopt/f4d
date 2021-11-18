@@ -212,6 +212,15 @@ namespace cobra {
             return RouteCustomerList(beg_p, end_p);
         }
 
+        inline auto get_routes() const {
+            std::vector<RouteCustomerList> routes;
+            routes.reserve(get_routes_num());
+            for (int route = get_first_route(); route != get_end_route(); route = get_next_route(route)) {
+                routes.emplace_back(get_route_customers(route));
+            }
+            return routes;
+        }
+
         /**
          * Returns the index if the route serving a given vertex. If vertex is the depot,
          * fallback is used to identify the route index.
