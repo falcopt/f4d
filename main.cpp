@@ -3,11 +3,11 @@
 #include <iomanip>
 #include <iostream>
 
-#define VERBOSE_LEVEL 1 //SPH verbose level
+#define VERBOSE_LEVEL 1  // SPH verbose level
 
-#include "CoreOptSolver.hpp"
 #include "LinKernighan.hpp"
 #include "RuinAndRecreate.hpp"
+#include "TimeBasedCoreOptSolver.hpp"
 #include "arg_parser.hpp"
 #include "cobra/Instance.hpp"
 #include "cobra/LocalSearch.hpp"
@@ -203,7 +203,7 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     sph::SPHeuristic sph(instance.get_vertices_num() - 1);
-    CoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
+    TimeBasedCoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
 
 
     const auto fastopt_iterations = param.get_fastopt_iterations();
@@ -225,8 +225,25 @@ auto main(int argc, char* argv[]) -> int {
         if (i % SPHPeriod == 0) {
             std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
             sph.set_timelimit(120);
-            sph.solve<500000>();
-            // TODO: transform bach columns to cobra::Solution
+            std::vector<sph::idx_t> columns = sph.solve<500000>();
+
+            cobra::Solution refined_solution(instance);
+            refined_solution.reset();
+            for (sph::idx_t col_idx : columns) {
+                const sph::Column& col = sph.get_col(col_idx);
+                int route = refined_solution.build_one_customer_route(col.front() + 1);
+                for (size_t n = 1; n < col.size(); ++n) {
+                    int customer = col[n] + 1;
+                    refined_solution.insert_vertex_before(route, instance.get_depot(), customer);
+                }
+            }
+
+            refined_solution.print();
+
+
+            if (!refined_solution.is_feasible(true, true)) abort();
+
+            best_solution = refined_solution;
             init_solution = best_solution;
         }
     }
