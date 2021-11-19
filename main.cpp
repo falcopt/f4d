@@ -27,6 +27,15 @@ inline std::string get_basename(const std::string& path) {
             path.end()};
 }
 
+void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
+    int route = 1;
+    for (sph::idx_t j : sol) {
+        fmt::print("Route #{}: {}\n", route++, fmt::join(inst.get_col(j), " "));
+    }
+    fmt::print("Cost {}\n", sol.get_cost());
+    fflush(stdout);
+}
+
 void store_to_file(const cobra::Instance& instance, const cobra::Solution& solution, const std::string& path) {
 
     auto out_stream = std::ofstream(path);
@@ -203,8 +212,11 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     sph::SPHeuristic sph(instance.get_vertices_num() - 1);
-    TimeBasedCoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
+    sph.set_new_best_callback(print_sol);
+    sph.set_max_routes(500'000U);
+    sph.set_keepcol_strategy(sph::SPP);
 
+    TimeBasedCoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
 
     const auto fastopt_iterations = param.get_fastopt_iterations();
     auto best_solution = cos.fastopt(solution, fastopt_iterations);
@@ -224,8 +236,9 @@ auto main(int argc, char* argv[]) -> int {
         }
         if (i % SPHPeriod == 0) {
             std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
-            sph.set_timelimit(120);
-            std::vector<sph::idx_t> columns = sph.solve<500000>();
+            sph.set_timelimit(instance.get_vertices_num() > 2000 ? 240 : instance.get_vertices_num() > 500 ? 120 : 60);
+            // sph.set_ncols_constr(best_solution.get_routes_num());
+            std::vector<sph::idx_t> columns = sph.solve();
 
             cobra::Solution refined_solution(instance);
             refined_solution.reset();
