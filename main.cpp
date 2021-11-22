@@ -30,7 +30,9 @@ inline std::string get_basename(const std::string& path) {
 void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
     int route = 1;
     for (sph::idx_t j : sol) {
-        fmt::print("Route #{}: {}\n", route++, fmt::join(inst.get_col(j), " "));
+        fmt::print("Route #{}: ", route++);
+        for (sph::idx_t i : inst.get_col(j)) fmt::print("{} ", i + 1);
+        fmt::print("\n");
     }
     fmt::print("Cost {}\n", sol.get_cost());
     fflush(stdout);

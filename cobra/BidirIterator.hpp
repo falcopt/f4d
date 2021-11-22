@@ -11,12 +11,12 @@ namespace cav {
         typedef typename std::ptrdiff_t difference_type;
         typedef typename std::remove_reference_t<typename std::result_of_t<OperDefer(Base&)>> value_type;
         typedef value_type* pointer;
-        typedef value_type& reference;
+        typedef typename std::result_of_t<OperDefer(Base&)> reference;
 
     public:
         BidirIterator(Base base_) : base(base_){};
 
-        inline auto operator*() {
+        inline reference operator*() {
             return OperDefer()(base);
         }
 
