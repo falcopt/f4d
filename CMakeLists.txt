@@ -34,6 +34,7 @@ endif(CPLEX_FOUND)
 
 option(ENABLE_VERBOSE "Enable verbose output" OFF)
 option(ENABLE_GUI "Enable graphical interface" OFF)
+option(ENABLE_DIMACS "Enable DIMACS output" OFF)
 
 message("-- Build options")
 
@@ -53,6 +54,12 @@ else()
     message("--- Verbose output DISABLED")
 endif()
 
+if(ENABLE_DIMACS)
+    message("--- DIMACS output ENABLED")
+    add_definitions(-DDIMACS)
+else()
+    message("--- DIMACS output DISABLED")
+endif()
 
 add_executable(f4d ${SOURCE})
 

@@ -207,6 +207,10 @@ cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution 
 
                 best_solution = solution;
 
+#ifdef DIMACS
+                best_solution.print_dimacs();
+#endif
+
                 if (best_solution.get_routes_num() <= kmin) {
                     goto end;
                 }

@@ -28,6 +28,7 @@ inline std::string get_basename(const std::string& path) {
 }
 
 void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
+    #ifdef DIMACS
     int route = 1;
     for (sph::idx_t j : sol) {
         fmt::print("Route #{}: ", route++);
@@ -36,6 +37,7 @@ void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
     }
     fmt::print("Cost {}\n", sol.get_cost());
     fflush(stdout);
+    #endif
 }
 
 void store_to_file(const cobra::Instance& instance, const cobra::Solution& solution, const std::string& path) {
@@ -184,6 +186,7 @@ auto main(int argc, char* argv[]) -> int {
     partial_time_begin = std::chrono::high_resolution_clock::now();
 #endif
     cobra::clarke_and_wright(instance, solution, param.get_cw_lambda(), param.get_cw_neighbors());
+    auto cw_solution = solution;
 #ifdef VERBOSE
     partial_time_end = std::chrono::high_resolution_clock::now();
     std::cout << "Done in " << std::chrono::duration_cast<std::chrono::milliseconds>(partial_time_end - partial_time_begin).count() << " milliseconds.\n";
@@ -228,40 +231,69 @@ auto main(int argc, char* argv[]) -> int {
     std::cout << "obj = " << solution.get_cost() << ", n. routes = " << solution.get_routes_num() << "\n\n";
 #endif
 
-    const auto coreopt_iterations = param.get_coreopt_iterations();
-    int SPHPeriod = 4;
-    auto init_solution = best_solution;
-    for (int i = 1; i <= 10; ++i) {
-        solution = cos.coreopt(init_solution, coreopt_iterations);
-        if (solution.get_cost() < best_solution.get_cost()) {
-            best_solution = solution;
-        }
-        if (i % SPHPeriod == 0) {
-            std::cout << "Cols saved in route-pool: " << sph.get_ncols() << "\n";
-            sph.set_timelimit(instance.get_vertices_num() > 2000 ? 240 : instance.get_vertices_num() > 500 ? 120 : 60);
-            // sph.set_ncols_constr(best_solution.get_routes_num());
-            std::vector<sph::idx_t> columns = sph.solve();
+    /**
+     * DIMACS config
+     */
 
-            cobra::Solution refined_solution(instance);
-            refined_solution.reset();
-            for (sph::idx_t col_idx : columns) {
-                const sph::Column& col = sph.get_col(col_idx);
-                int route = refined_solution.build_one_customer_route(col.front() + 1);
-                for (size_t n = 1; n < col.size(); ++n) {
-                    int customer = col[n] + 1;
-                    refined_solution.insert_vertex_before(route, instance.get_depot(), customer);
-                }
-            }
+    int time_base;
+    int time_fact;
+    int runs;
+    bool restart = false;
+    int sph_timelimit;
 
-            refined_solution.print();
-
-
-            if (!refined_solution.is_feasible(true, true)) abort();
-
-            best_solution = refined_solution;
-            init_solution = best_solution;
-        }
+    if (instance.get_customers_num() <= 1000) {
+        time_base = 120;
+        time_fact = 2;
+        runs = 3;
+        restart = true;
+        sph_timelimit = 60;
+    } else if (instance.get_customers_num() <= 10000) {
+        time_base = 600;
+        time_fact = 2;
+        runs = 1;
+        sph_timelimit = 360;
+    } else {
+        time_base = 1200;
+        time_fact = 2;
+        runs = 1;
+        sph_timelimit = 720;
     }
+
+    sph.set_timelimit(sph_timelimit);
+
+    solution = best_solution;
+
+    while (true) {
+
+        for (int run = 0; run < runs; ++run) {
+
+            if (restart) solution = cw_solution;
+
+            solution = cos.coreopt(solution, time_base);
+        }
+
+
+
+        std::vector<sph::idx_t> columns = sph.solve();
+
+        cobra::Solution refined_solution(instance);
+        refined_solution.reset();
+        for (sph::idx_t col_idx : columns) {
+            const sph::Column& col = sph.get_col(col_idx);
+            int route = refined_solution.build_one_customer_route(col.front() + 1);
+            for (size_t n = 1; n < col.size(); ++n) {
+                int customer = col[n] + 1;
+                refined_solution.insert_vertex_before(route, instance.get_depot(), customer);
+            }
+        }
+
+        refined_solution.print_dimacs();
+
+        time_base *= time_fact;
+
+    }
+
+
     const auto global_time_end = std::chrono::high_resolution_clock::now();
 
 #ifdef VERBOSE

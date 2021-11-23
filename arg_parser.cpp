@@ -32,21 +32,21 @@ Parameters parse_command_line_arguments(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (argc == 2 && std::string(argv[1]) == TOKEN_HELP) {
+    /*if (argc == 2 && std::string(argv[1]) == TOKEN_HELP) {
         print_help();
         exit(EXIT_SUCCESS);
-    }
+    }*/
 
     auto parameters = Parameters(std::string(argv[1]));
 
     // dimacs run
-    if (argc == 3) {
+    //if (argc == 4) {
 
-        parameters.set(TOKEN_ROUND, argv[2]);
-        return parameters;
-    }
+    parameters.set(TOKEN_ROUND, argv[2]);
+    return parameters;
+    //}
 
-    for (auto n = 2; n < argc; n += 2) {
+    /*for (auto n = 2; n < argc; n += 2) {
 
         auto token = std::string(argv[n]);
 
@@ -63,7 +63,7 @@ Parameters parse_command_line_arguments(int argc, char* argv[]) {
         auto value = std::string(argv[n + 1]);
 
         parameters.set(token, value);
-    }
+    }*/
 
     return parameters;
 }

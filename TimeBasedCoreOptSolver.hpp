@@ -133,6 +133,9 @@ public:
 
             if (neighbor.get_cost() < best_solution.get_cost()) {
                 best_solution = neighbor;
+#ifdef DIMACS
+                best_solution.print_dimacs();
+#endif
             }
 
             const auto seed_shake_value = omega[walk_seed];
@@ -250,11 +253,10 @@ public:
             {"Omega", cobra::PrettyPrinter::Field::Type::REAL, 6, " "},
             {"Temp", cobra::PrettyPrinter::Field::Type::REAL, 6, " "},
         });
-        
+
         auto main_opt_loop_begin_time = std::chrono::high_resolution_clock::now();
         auto elapsed_minutes = 0;
 #endif
-
 
 
         const auto intensification_lb = param.get_shaking_lb_factor();
@@ -378,6 +380,10 @@ public:
 #endif
 
                 best_solution = neighbor;
+
+#ifdef DIMACS
+                best_solution.print_dimacs();
+#endif
 
                 gamma_vertices.clear();
                 for (auto i = neighbor.get_cache_begin(); i != neighbor.get_cache_end(); i = neighbor.get_cache_next(i)) {
@@ -508,7 +514,8 @@ private:
                         std::chrono::time_point<std::chrono::high_resolution_clock>& main_opt_loop_begin_time, std::vector<float>& gamma,
                         cobra::TimeBasedSimulatedAnnealing2& sa, cobra::Solution& best_solution, std::optional<float> bks) {
 
-        const auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - main_opt_loop_begin_time).count();
+        const auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - main_opt_loop_begin_time)
+                                      .count();
 
         const auto remaining_time = iterations - elapsed_time;
 
