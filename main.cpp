@@ -57,7 +57,7 @@ void store_to_file(const cobra::Instance& instance, const cobra::Solution& solut
 }
 
 
-auto main(int argc, char* argv[]) -> int {
+auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
 #ifndef NDEBUG
     std::cout << "******************************\n";
@@ -80,13 +80,13 @@ auto main(int argc, char* argv[]) -> int {
     std::cout << "\n";
 #endif
 
-    auto param = parse_command_line_arguments(argc, argv);
+    auto param = parse_command_line_arguments(argv);
 
     int T = std::stoi(argv[3]);
     Config cfg(argv[4]);
 
     // int T = 7200;
-    // Config cfg("/home/acco/git/f4d/configs/baseline.config");
+    //Config cfg("../configs/baseline.config");
 
     param.set(TOKEN_OUTPATH, cfg.get_string("filo_outpath_prefix") + argv[4] + "/");
 

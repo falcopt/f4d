@@ -24,7 +24,7 @@ void print_help() {
     std::cout << "\nReport bugs to luca.accorsi4 or f.cavaliere and the domain is unibo.it\n";
 }
 
-Parameters parse_command_line_arguments(int argc, char* argv[]) {
+Parameters parse_command_line_arguments(char* argv[]) {
 
     /*if (argc == 1) {
         std::cout << "Error: missing input instance.\n\n";
