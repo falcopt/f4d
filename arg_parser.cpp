@@ -2,7 +2,7 @@
 
 void print_help() {
 
-    std::cout << "Usage: filo <path-to-instance> [OPTIONS]\n\n";
+    std::cout << "Usage: f4d <path-to-instance> [OPTIONS]\n\n";
 
     std::cout << "Available options\n";
 
@@ -26,23 +26,19 @@ void print_help() {
 
 Parameters parse_command_line_arguments(int argc, char* argv[]) {
 
-    if (argc == 1) {
+    /*if (argc == 1) {
         std::cout << "Error: missing input instance.\n\n";
         print_help();
         exit(EXIT_FAILURE);
-    }
-
-    /*if (argc == 2 && std::string(argv[1]) == TOKEN_HELP) {
-        print_help();
-        exit(EXIT_SUCCESS);
     }*/
 
     auto parameters = Parameters(std::string(argv[1]));
 
-    // dimacs run
-    //if (argc == 4) {
-
+    //auto parameters = Parameters("/home/acco/git/CVRPController/InstancesRounded/X-n1001-k43.vrp");
     parameters.set(TOKEN_ROUND, argv[2]);
+    //parameters.set(TOKEN_ROUND, "1");
+    
+
     return parameters;
     //}
 

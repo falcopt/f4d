@@ -64,4 +64,4 @@ endif()
 add_executable(f4d ${SOURCE})
 
 
-target_link_libraries(f4d PUBLIC ${LIBRARIES})
+target_link_libraries(f4d PUBLIC ${LIBRARIES} stdc++fs)

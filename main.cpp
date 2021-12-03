@@ -5,6 +5,7 @@
 
 #define VERBOSE_LEVEL 1  // SPH verbose level
 
+#include "Config.hpp"
 #include "LinKernighan.hpp"
 #include "RuinAndRecreate.hpp"
 #include "TimeBasedCoreOptSolver.hpp"
@@ -28,7 +29,7 @@ inline std::string get_basename(const std::string& path) {
 }
 
 void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
-    #ifdef DIMACS
+#ifdef DIMACS
     int route = 1;
     for (sph::idx_t j : sol) {
         fmt::print("Route #{}: ", route++);
@@ -37,7 +38,7 @@ void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
     }
     fmt::print("Cost {}\n", sol.get_cost());
     fflush(stdout);
-    #endif
+#endif
 }
 
 void store_to_file(const cobra::Instance& instance, const cobra::Solution& solution, const std::string& path) {
@@ -80,6 +81,14 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
     auto param = parse_command_line_arguments(argc, argv);
+
+    int T = std::stoi(argv[3]);
+    Config cfg(argv[4]);
+
+    // int T = 7200;
+    // Config cfg("/home/acco/git/f4d/configs/baseline.config");
+
+    param.set(TOKEN_OUTPATH, cfg.get_string("filo_outpath_prefix") + argv[4] + "/");
 
     std::filesystem::create_directories(param.get_outpath());
 
@@ -166,7 +175,6 @@ auto main(int argc, char* argv[]) -> int {
          cobra::TWOPT, cobra::RE30, cobra::E30,   cobra::RE33B, cobra::E33,   cobra::RE31, cobra::RE32B, cobra::RE33S, cobra::E31,   cobra::E32, cobra::RE32S},
         rand_engine, tolerance);
     auto rvnd1 = cobra::RandomizedVariableNeighborhoodDescent(instance, move_generators, {cobra::EJCH, cobra::TLCH, cobra::STCH}, rand_engine, tolerance);
-    auto rvnd2 = cobra::RandomizedVariableNeighborhoodDescent(instance, move_generators, {cobra::TLCH}, rand_engine, tolerance);
 
     auto local_search = cobra::VariableNeighborhoodDescentComposer(tolerance);
     local_search.append(&rvnd0);
@@ -231,66 +239,102 @@ auto main(int argc, char* argv[]) -> int {
     std::cout << "obj = " << solution.get_cost() << ", n. routes = " << solution.get_routes_num() << "\n\n";
 #endif
 
-    /**
-     * DIMACS config
-     */
+    int small_size = cfg.get_int("small_size");
+    int medium_size = cfg.get_int("medium_size");
+    int large_size = cfg.get_int("large_size");
+    int xlarge_size = cfg.get_int("xlarge_size");
 
-    int time_base;
-    int time_fact;
-    int runs;
-    bool restart = false;
-    int sph_timelimit;
+    int PHASE1 = 0;
+    int PHASE2 = 1;
 
-    if (instance.get_customers_num() <= 1000) {
-        time_base = 120;
-        time_fact = 2;
-        runs = 3;
-        restart = true;
-        sph_timelimit = 60;
-    } else if (instance.get_customers_num() <= 10000) {
-        time_base = 600;
-        time_fact = 2;
-        runs = 1;
-        sph_timelimit = 360;
+    std::array<float, 2> phase_time;
+    std::array<int, 2> rounds;
+    std::array<float, 2> filo_time;
+    std::array<int, 2> filo_runs;
+    std::array<float, 2> sph_time;
+    std::array<std::string, 2> sa_init_factor;
+    std::array<std::string, 2> sa_final_factor;
+
+    std::string size_prefix;
+    if (instance.get_vertices_num() <= small_size) {
+        size_prefix = "small";
+    } else if (instance.get_vertices_num() <= medium_size) {
+        size_prefix = "medium";
+    } else if (instance.get_vertices_num() <= large_size) {
+        size_prefix = "large";
+    } else if (instance.get_vertices_num() <= xlarge_size) {
+        size_prefix = "xlarge";
     } else {
-        time_base = 1200;
-        time_fact = 2;
-        runs = 1;
-        sph_timelimit = 720;
+        size_prefix = "xxlarge";
     }
 
-    sph.set_timelimit(sph_timelimit);
-
+    phase_time[PHASE1] = cfg.get_real(size_prefix + "_phase1_fract");
+    phase_time[PHASE2] = 1 - phase_time[PHASE1];
+    rounds[PHASE1] = cfg.get_int(size_prefix + "_phase1_rounds");
+    rounds[PHASE2] = cfg.get_int(size_prefix + "_phase2_rounds");
+    filo_time[PHASE1] = cfg.get_real(size_prefix + "_phase1_filo_time");
+    filo_time[PHASE2] = cfg.get_real(size_prefix + "_phase2_filo_time");
+    filo_runs[PHASE1] = cfg.get_int(size_prefix + "_phase1_filo_runs");
+    filo_runs[PHASE2] = cfg.get_int(size_prefix + "_phase2_filo_runs");
+    sph_time[PHASE1] = 1 - filo_time[PHASE1];
+    sph_time[PHASE2] = 1 - filo_time[PHASE2];
+    sa_init_factor[PHASE1] = cfg.get_string(size_prefix + "_phase1_sa_init_factor");
+    sa_init_factor[PHASE2] = cfg.get_string(size_prefix + "_phase2_sa_init_factor");
+    sa_final_factor[PHASE1] = cfg.get_string(size_prefix + "_phase1_sa_final_factor");
+    sa_final_factor[PHASE2] = cfg.get_string(size_prefix + "_phase2_sa_final_factor");
     solution = best_solution;
 
-    while (true) {
+    for (int phase = 0; phase < 2; ++phase) {
 
-        for (int run = 0; run < runs; ++run) {
+        int t_phase = T * phase_time[phase];
 
-            if (restart) solution = cw_solution;
+        if (t_phase == 0) continue;
 
-            solution = cos.coreopt(solution, time_base);
-        }
+        int t_filo = t_phase * filo_time[phase];
+        int t_sph = (t_phase - t_filo) / rounds[phase];
 
+        param.set(TOKEN_SA_INIT_FACTOR, sa_init_factor[phase]);
+        param.set(TOKEN_SA_FINAL_FACTOR, sa_final_factor[phase]);
 
+        int t_coreopt = t_filo / (filo_runs[phase] * rounds[phase]);
 
-        std::vector<sph::idx_t> columns = sph.solve();
+        for (int round = 0; round < rounds[phase]; ++round) {
 
-        cobra::Solution refined_solution(instance);
-        refined_solution.reset();
-        for (sph::idx_t col_idx : columns) {
-            const sph::Column& col = sph.get_col(col_idx);
-            int route = refined_solution.build_one_customer_route(col.front() + 1);
-            for (size_t n = 1; n < col.size(); ++n) {
-                int customer = col[n] + 1;
-                refined_solution.insert_vertex_before(route, instance.get_depot(), customer);
+            for (int run = 0; run < filo_runs[phase]; ++run) {
+
+                solution = cos.coreopt(solution, t_coreopt);
+                if (solution.get_cost() < best_solution.get_cost()) {
+                    best_solution = solution;
+                }
+            }
+
+            sph.set_timelimit(t_sph);
+            std::vector<sph::idx_t> columns = sph.solve();
+
+            cobra::Solution refined_solution(instance);
+            refined_solution.reset();
+            for (sph::idx_t col_idx : columns) {
+                const sph::Column& col = sph.get_col(col_idx);
+                int route = refined_solution.build_one_customer_route(col.front() + 1);
+                for (size_t n = 1; n < col.size(); ++n) {
+                    int customer = col[n] + 1;
+                    refined_solution.insert_vertex_before(route, instance.get_depot(), customer);
+                }
+            }
+            refined_solution.print_dimacs();
+
+            if (refined_solution.get_cost() < solution.get_cost()) {
+                solution = refined_solution;
+            }
+
+            if (solution.get_cost() < best_solution.get_cost()) {
+                best_solution = solution;
+                auto out_stream = std::ofstream(outfile + ".out");
+                out_stream << std::setprecision(10);
+                out_stream << best_solution.get_cost() << "\n";
+                store_to_file(instance, best_solution, outfile + ".sol");
             }
         }
-
-        refined_solution.print_dimacs();
-
-        time_base *= time_fact;
-
     }
 
 
