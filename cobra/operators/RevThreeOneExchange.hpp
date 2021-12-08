@@ -30,8 +30,8 @@ namespace cobra {
             const auto jNext = solution.get_next_vertex(jRoute, j);
             const auto jNextNext = solution.get_next_vertex(jRoute, jNext);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrevPrev, iPrevPrev) - this->instance.get_cost(i, iNext);
-            const auto jSequenceRem = -this->instance.get_cost(j, jNext) - this->instance.get_cost(jNext, jNextNext);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrevPrev) - solution.get_next_cost(i);
+            const auto jSequenceRem = -solution.get_next_cost(j) - solution.get_next_cost(jNext);
 
             const auto iSequenceAdd = +this->instance.get_cost(jNextNext, iPrevPrev) + this->instance.get_cost(i, j);
             const auto jSequenceAdd = +this->instance.get_cost(iPrevPrevPrev, jNext) + this->instance.get_cost(jNext, iNext);
@@ -158,12 +158,12 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
+            const auto c_v_next = solution.get_next_cost(c.v);
 
             // c.v = i in (i, j)
-            c.sequrem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - c_v_next;
+            c.sequrem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - c_v_next;
             // c.v = j in (i, j)
-            c.nextrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            c.nextrem = -c_v_next - solution.get_next_cost(c.next,c.nextnext);
 
             return c;
         }
@@ -181,12 +181,12 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
 
             // c.v = i in (i, j)
-            c.sequrem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - c_v_next;
+            c.sequrem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - c_v_next;
             // c.v = j in (i, j)
-            c.nextrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            c.nextrem = -c_v_next - solution.get_next_cost(c.next, c.nextnext);
 
             return c;
         }
@@ -218,7 +218,7 @@ namespace cobra {
             const auto route = solution.get_route_index(c.v);
             c.prevprev = solution.get_prev_vertex(route, prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
-            c.sequrem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.sequrem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v);
             return c;
         }
 
@@ -230,7 +230,7 @@ namespace cobra {
             c.next = solution.get_next_vertex(route, c.v);
             c.prevprev = solution.get_prev_vertex(route, prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
-            c.sequrem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.sequrem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v, c.next);
             return c;
         }
 
@@ -246,7 +246,7 @@ namespace cobra {
             c.next = solution.get_next_vertex(c.v);
             const auto route = solution.get_route_index(c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
-            c.nextrem = -this->instance.get_cost(c.v, c.next) - this->instance.get_cost(c.next, c.nextnext);
+            c.nextrem = -solution.get_next_cost(c.v) - solution.get_next_cost(c.next, c.nextnext);
             return c;
         }
 
@@ -256,7 +256,7 @@ namespace cobra {
             const auto route = solution.get_route_index(c.v, backup);
             c.next = solution.get_next_vertex(route, c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
-            c.nextrem = -this->instance.get_cost(c.v, c.next) - this->instance.get_cost(c.next, c.nextnext);
+            c.nextrem = -solution.get_next_cost(c.v, c.next) - solution.get_next_cost(c.next, c.nextnext);
             return c;
         }
 

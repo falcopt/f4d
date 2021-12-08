@@ -160,12 +160,13 @@ namespace cobra {
         int build_one_customer_route(const int customer) {
 
             assert(!is_customer_in_solution(customer));
-            assert(customer != instance.get_depot());
+            const auto depot = instance.get_depot();
+            assert(customer != depot);
 
             const auto route = request_route();
 
-            customers_list[customer].prev = instance.get_depot();
-            customers_list[customer].next = instance.get_depot();
+            customers_list[customer].prev = customers_list[customer].next = depot;
+            customers_list[customer].prev_cost = customers_list[customer].next_cost = instance.get_cost(customer, depot);
             customers_list[customer].route_ptr = route;
 
             // head insert the route in the list
@@ -327,6 +328,7 @@ namespace cobra {
                 } else {
                     customers_list[prev].next = next;  // if vertex != route.first_customer => for sure prev is not the root
                     customers_list[next].prev = prev;  // if vertex != route.last_customer => for sure next is not the root
+                    customers_list[prev].next_cost = customers_list[next].prev_cost = instance.get_cost(prev, next);
                 }
 
                 routes_list[route].load -= instance.get_demand(vertex);
@@ -405,6 +407,40 @@ namespace cobra {
             }
         }
 
+        inline float get_next_cost(const int vertex) const {
+            assert(vertex != instance.get_depot());
+            assert(this->instance.get_cost(vertex, customers_list[vertex].next) == customers_list[vertex].next_cost);
+            return customers_list[vertex].next_cost;
+        }
+
+        inline float get_prev_cost(const int vertex) const {
+            assert(vertex != instance.get_depot());
+            assert(this->instance.get_cost(vertex, customers_list[vertex].prev) == customers_list[vertex].prev_cost);
+            return customers_list[vertex].prev_cost;
+        }
+
+        inline float get_next_cost(const int vertex, const int backup) const {
+            if (unlikely(vertex == instance.get_depot())) {
+                assert(customers_list[backup].prev == vertex);
+                assert(this->instance.get_cost(vertex, backup) == customers_list[backup].prev_cost);
+                return customers_list[backup].prev_cost;
+            }
+            assert(customers_list[vertex].next == backup);
+            assert(this->instance.get_cost(vertex, customers_list[vertex].next) == customers_list[vertex].next_cost);
+            return customers_list[vertex].next_cost;
+        }
+
+        inline float get_prev_cost(const int vertex, const int backup) const {
+            if (unlikely(vertex == instance.get_depot())) {
+                assert(customers_list[backup].next == vertex);
+                assert(this->instance.get_cost(vertex, backup) == customers_list[backup].next_cost);
+                return customers_list[backup].next_cost;
+            }
+            assert(customers_list[vertex].prev == backup);
+            assert(this->instance.get_cost(vertex, customers_list[vertex].prev) == customers_list[vertex].prev_cost);
+            return customers_list[vertex].prev_cost;
+        }
+
         /**
          * Inserts a vertex before where in route.
          * @param route
@@ -414,28 +450,31 @@ namespace cobra {
         void insert_vertex_before(const int route, const int where, const int vertex) {
 
             assert(where != vertex);
+            const auto depot = instance.get_depot();
 
-            if (unlikely(vertex == instance.get_depot())) {
+            if (unlikely(vertex == depot)) {
 
                 assert(routes_list[route].first_customer == Solution::dummy_vertex);
                 assert(routes_list[route].last_customer == Solution::dummy_vertex);
-                assert(where != instance.get_depot());
+                assert(where != depot);
 
                 const auto prev = customers_list[where].prev;
 
                 cache.insert(prev);
                 cache.insert(where);
 
-                assert(prev != instance.get_depot());
+                assert(prev != depot);
 
                 routes_list[route].first_customer = where;
                 routes_list[route].last_customer = prev;
 
-                customers_list[prev].next = instance.get_depot();
-                customers_list[where].prev = instance.get_depot();
+                customers_list[prev].next = depot;
+                customers_list[where].prev = depot;
+                customers_list[prev].next_cost = instance.get_cost(prev, depot);
+                customers_list[where].prev_cost = instance.get_cost(where, depot);
 
-                const auto delta = +instance.get_cost(prev, instance.get_depot()) + instance.get_cost(instance.get_depot(), where) -
-                                   instance.get_cost(prev, where);
+
+                const auto delta = +instance.get_cost(prev, depot) + instance.get_cost(depot, where) - instance.get_cost(prev, where);
 
 
                 solution_cost += delta;
@@ -454,6 +493,8 @@ namespace cobra {
                 // vertex for sure is not the root of route
                 customers_list[vertex].next = where;
                 customers_list[vertex].prev = prev;
+                customers_list[vertex].next_cost = instance.get_cost(vertex, where);
+                customers_list[vertex].prev_cost = instance.get_cost(vertex, prev);
                 customers_list[vertex].route_ptr = route;
 
                 set_next_vertex_ptr(route, prev, vertex);
@@ -527,12 +568,10 @@ namespace cobra {
             do {
 
                 assert(curr != instance.get_depot());
-                const auto prev = customers_list[curr].prev;
-                const auto next = customers_list[curr].next;
-                customers_list[curr].prev = next;
-                customers_list[curr].next = prev;
+                std::swap(customers_list[curr].prev, customers_list[curr].next);
+                std::swap(customers_list[curr].prev_cost, customers_list[curr].next_cost);
 
-                curr = next;
+                curr = customers_list[curr].prev;
 
             } while (curr != instance.get_depot());
 
@@ -560,6 +599,7 @@ namespace cobra {
 
             customers_list[route_end].next = route_to_append_start;
             customers_list[route_to_append_start].prev = route_end;
+            customers_list[route_end].next_cost = customers_list[route_to_append_start].prev_cost = instance.get_cost(route_end, route_to_append_start);
 
             routes_list[route].last_customer = routes_list[route_to_append].last_customer;
             routes_list[route].load += routes_list[route_to_append].load;
@@ -785,6 +825,7 @@ namespace cobra {
             // update next, prev and route pointers
             customers_list[i].next = j;
             customers_list[j].prev = i;
+            customers_list[i].next_cost = customers_list[j].prev_cost = instance.get_cost(i, j);
             auto j_counter = 0;
             for (auto curr = j; curr != instance.get_depot(); curr = customers_list[curr].next) {
                 customers_list[curr].route_ptr = iRoute;
@@ -1218,6 +1259,8 @@ namespace cobra {
         struct CustomerNode {
             int next;
             int prev;
+            float next_cost;
+            float prev_cost;
             int route_ptr;
             int load_after;
             int load_before;
@@ -1282,6 +1325,8 @@ namespace cobra {
         void reset_vertex(const int customer) {
             customers_list[customer].next = Solution::dummy_vertex;
             customers_list[customer].prev = Solution::dummy_vertex;
+            customers_list[customer].next_cost = 10e10;
+            customers_list[customer].prev_cost = 10e10;
             customers_list[customer].route_ptr = Solution::dummy_route;
         }
 
@@ -1290,6 +1335,7 @@ namespace cobra {
                 routes_list[route].first_customer = next;
             } else {
                 customers_list[vertex].next = next;
+                customers_list[vertex].next_cost = instance.get_cost(vertex, next);
             }
         }
 
@@ -1298,6 +1344,7 @@ namespace cobra {
                 routes_list[route].last_customer = prev;
             } else {
                 customers_list[vertex].prev = prev;
+                customers_list[vertex].prev_cost = instance.get_cost(vertex, prev);
             }
         }
 

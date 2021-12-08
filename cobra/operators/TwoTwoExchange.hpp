@@ -30,8 +30,8 @@ namespace cobra {
             const auto jPrevPrev = solution.get_prev_vertex(jRoute, jPrev);
             const auto jPrevPrevPrev = solution.get_prev_vertex(jRoute, jPrevPrev);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrev, iPrev) - this->instance.get_cost(i, iNext);
-            const auto jSequenceRem = -this->instance.get_cost(jPrevPrevPrev, jPrevPrev) - this->instance.get_cost(jPrev, j);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrev) - solution.get_next_cost(i);
+            const auto jSequenceRem = -solution.get_prev_cost(jPrevPrev) - solution.get_prev_cost(j);
 
             const auto iSequenceAdd = +this->instance.get_cost(jPrevPrevPrev, iPrev) + this->instance.get_cost(i, j);
             const auto jSequenceAdd = +this->instance.get_cost(iPrevPrev, jPrevPrev) + this->instance.get_cost(jPrev, iNext);
@@ -155,8 +155,8 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - solution.get_next_cost(c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_prev_cost(c.v);
 
 
             return c;
@@ -173,8 +173,8 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - solution.get_next_cost(c.v, c.next);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_prev_cost(c.v, c.prev);
 
 
             return c;
@@ -211,7 +211,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - this->instance.get_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - solution.get_next_cost(c.v);
 
 
             return c;
@@ -225,7 +225,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - this->instance.get_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - solution.get_next_cost(c.v, c.next);
 
 
             return c;
@@ -245,7 +245,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
 
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_prev_cost(c.v);
 
 
             return c;
@@ -259,7 +259,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
 
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_prev_cost(c.v, c.prev);
 
 
             return c;

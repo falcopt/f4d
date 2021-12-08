@@ -29,8 +29,8 @@ namespace cobra {
 
             const auto jPrev = solution.get_prev_vertex(jRoute, j);
 
-            return -this->instance.get_cost(iPrev, i) - this->instance.get_cost(i, iNext) + this->instance.get_cost(iPrev, iNext) -
-                   this->instance.get_cost(jPrev, j) + this->instance.get_cost(jPrev, i) + this->instance.get_cost(i, j);
+            return -solution.get_prev_cost(i) - solution.get_next_cost(i) + this->instance.get_cost(iPrev, iNext) - solution.get_prev_cost(j) +
+                   this->instance.get_cost(jPrev, i) + this->instance.get_cost(i, j);
         }
 
         bool is_feasible(const Solution &solution, const MoveGenerator &move) override {
@@ -101,9 +101,9 @@ namespace cobra {
             c.next = solution.get_next_vertex(c.v);
 
             // c.v = i in (i, j)
-            c.vrem = -this->instance.get_cost(c.prev, c.v) - this->instance.get_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
+            c.vrem = -solution.get_prev_cost(c.v) - solution.get_next_cost(c.v) + this->instance.get_cost(c.prev, c.next);
             // c.v = j in (i, j)
-            c.prevrem = -this->instance.get_cost(c.prev, c.v);
+            c.prevrem = -solution.get_prev_cost(c.v);
 
             return c;
         }
@@ -119,9 +119,9 @@ namespace cobra {
             c.next = solution.get_next_vertex(route, c.v);
 
             // c.v = i in (i, j)
-            c.vrem = -this->instance.get_cost(c.prev, c.v) - this->instance.get_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
+            c.vrem = -solution.get_prev_cost(c.v, c.prev) - solution.get_next_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
             // c.v = j in (i, j)
-            c.prevrem = -this->instance.get_cost(c.prev, c.v);
+            c.prevrem = -solution.get_prev_cost(c.v, c.prev);
 
             return c;
         }
@@ -147,7 +147,7 @@ namespace cobra {
             c.v = vertex;
             c.prev = solution.get_prev_vertex(c.v);
             c.next = solution.get_next_vertex(c.v);
-            c.vrem = -this->instance.get_cost(c.prev, c.v) - this->instance.get_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
+            c.vrem = -solution.get_prev_cost(c.v) - solution.get_next_cost(c.v) + this->instance.get_cost(c.prev, c.next);
             return c;
         }
 
@@ -157,7 +157,7 @@ namespace cobra {
             const auto route = solution.get_route_index(vertex, backup);
             c.prev = solution.get_prev_vertex(route, c.v);
             c.next = solution.get_next_vertex(route, c.v);
-            c.vrem = -this->instance.get_cost(c.prev, c.v) - this->instance.get_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
+            c.vrem = -solution.get_prev_cost(c.v, c.prev) - solution.get_next_cost(c.v, c.next) + this->instance.get_cost(c.prev, c.next);
             return c;
         }
 
@@ -171,7 +171,7 @@ namespace cobra {
             auto c = Cache2();
             c.v = vertex;
             c.prev = solution.get_prev_vertex(c.v);
-            c.prevrem = -this->instance.get_cost(c.prev, c.v);
+            c.prevrem = -solution.get_prev_cost(c.v);
             return c;
         }
 
@@ -180,7 +180,7 @@ namespace cobra {
             c.v = vertex;
             const auto route = solution.get_route_index(vertex, backup);
             c.prev = solution.get_prev_vertex(route, c.v);
-            c.prevrem = -this->instance.get_cost(c.prev, c.v);
+            c.prevrem = -solution.get_prev_cost(c.v, c.prev);
             return c;
         }
 

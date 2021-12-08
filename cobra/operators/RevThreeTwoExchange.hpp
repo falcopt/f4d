@@ -31,8 +31,8 @@ namespace cobra {
             const auto jNextNext = solution.get_next_vertex(jRoute, jNext);
             const auto jNextNextNext = solution.get_next_vertex(jRoute, jNextNext);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrevPrev, iPrevPrev) - this->instance.get_cost(i, iNext);
-            const auto jSequenceRem = -this->instance.get_cost(j, jNext) - this->instance.get_cost(jNextNext, jNextNextNext);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrevPrev) - solution.get_next_cost(i);
+            const auto jSequenceRem = -solution.get_next_cost(j) - solution.get_next_cost(jNextNext);
 
             const auto iSequenceAdd = +this->instance.get_cost(jNextNextNext, iPrevPrev) + this->instance.get_cost(i, j);
 
@@ -187,12 +187,12 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
+            const auto c_v_next = solution.get_next_cost(c.v);
 
             // c.v = i in (i, j)
-            c.seq1rem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - c_v_next;
+            c.seq1rem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - c_v_next;
             // c.v = j in (i, j)
-            c.seq2rem = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            c.seq2rem = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
             return c;
         }
@@ -210,12 +210,12 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
 
             // c.v = i in (i, j)
-            c.seq1rem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - c_v_next;
+            c.seq1rem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - c_v_next;
             // c.v = j in (i, j)
-            c.seq2rem = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            c.seq2rem = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
             return c;
         }
@@ -258,7 +258,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
 
-            c.seq1rem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.seq1rem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v);
 
             return c;
         }
@@ -273,7 +273,7 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, prev);
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
 
-            c.seq1rem = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.seq1rem = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v, c.next);
 
             return c;
         }
@@ -293,7 +293,7 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            c.seq2rem = -this->instance.get_cost(c.v, c.next) - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            c.seq2rem = -solution.get_next_cost(c.v) - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
             return c;
         }
@@ -307,7 +307,7 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            c.seq2rem = -this->instance.get_cost(c.v, c.next) - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            c.seq2rem = -solution.get_next_cost(c.v, c.next) - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
             return c;
         }

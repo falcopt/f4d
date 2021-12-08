@@ -30,8 +30,8 @@ namespace cobra {
             const auto jNextNext = solution.get_next_vertex(jRoute, jNext);
             const auto jNextNextNext = solution.get_next_vertex(jRoute, jNextNext);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrev, iPrev) - this->instance.get_cost(i, iNext);
-            const auto jSequenceRem = -this->instance.get_cost(j, jNext) - this->instance.get_cost(jNextNext, jNextNextNext);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrev) - solution.get_next_cost(i);
+            const auto jSequenceRem = -solution.get_next_cost(j) - solution.get_next_cost(jNextNext);
 
             const auto iSequenceAdd = +this->instance.get_cost(jNextNextNext, iPrev) + this->instance.get_cost(i, j);
 
@@ -170,9 +170,9 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
-            c.seqrem2 = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
+            c.seqrem2 = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
 
             return c;
@@ -189,9 +189,9 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
-            c.seqrem2 = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
+            c.seqrem2 = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
 
             return c;
@@ -235,8 +235,8 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(c.v);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
 
 
             return c;
@@ -250,8 +250,8 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem1 = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
 
 
             return c;
@@ -271,8 +271,8 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.seqrem2 = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
 
             return c;
@@ -286,8 +286,8 @@ namespace cobra {
             c.nextnext = solution.get_next_vertex(route, c.next);
             c.nextnextnext = solution.get_next_vertex(route, c.nextnext);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -c_v_next - this->instance.get_cost(c.nextnext, c.nextnextnext);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.seqrem2 = -c_v_next - solution.get_next_cost(c.nextnext, c.nextnextnext);
 
 
             return c;

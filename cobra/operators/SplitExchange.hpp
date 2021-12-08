@@ -30,7 +30,7 @@ namespace cobra {
             const auto iNext = solution.get_next_vertex(iRoute, i);
             const auto jNext = solution.get_next_vertex(jRoute, j);
 
-            return -this->instance.get_cost(i, iNext) + this->instance.get_cost(i, j) - this->instance.get_cost(j, jNext) +
+            return -solution.get_next_cost(i) + this->instance.get_cost(i, j) - solution.get_next_cost(j) +
                    this->instance.get_cost(jNext, iNext);
         }
 
@@ -104,7 +104,7 @@ namespace cobra {
             c.v = vertex;
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem = -this->instance.get_cost(c.v, c.next);
+            c.seqrem = -solution.get_next_cost(c.v);
 
             return c;
         }
@@ -116,7 +116,7 @@ namespace cobra {
             const auto route = solution.get_route_index(c.v, backup);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem = -this->instance.get_cost(c.v, c.next);
+            c.seqrem = -solution.get_next_cost(c.v, c.next);
 
             return c;
         }

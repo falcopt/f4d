@@ -29,7 +29,7 @@ namespace cobra {
 
             const auto jPrev = solution.get_prev_vertex(jRoute, j);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrevPrev, iPrevPrev) - this->instance.get_cost(i, iNext);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrevPrev) - solution.get_next_cost(i);
             const auto jSequenceRem = -this->instance.get_cost(j, jPrev);
             const auto iSequenceAdd = +this->instance.get_cost(jPrev, iPrevPrev) + this->instance.get_cost(i, j);
             const auto iFilling = +this->instance.get_cost(iPrevPrevPrev, iNext);

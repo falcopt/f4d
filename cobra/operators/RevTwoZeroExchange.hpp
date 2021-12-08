@@ -28,8 +28,8 @@ namespace cobra {
 
             const auto jNext = solution.get_next_vertex(jRoute, j);
 
-            return -this->instance.get_cost(iPrevPrev, iPrev) - this->instance.get_cost(i, iNext) + this->instance.get_cost(iPrevPrev, iNext) -
-                   this->instance.get_cost(j, jNext) + this->instance.get_cost(i, j) + this->instance.get_cost(iPrev, jNext);
+            return -solution.get_prev_cost(iPrev) - solution.get_next_cost(i) + this->instance.get_cost(iPrevPrev, iNext) -
+                   solution.get_next_cost(j) + this->instance.get_cost(i, j) + this->instance.get_cost(iPrev, jNext);
         }
 
         bool is_feasible(const Solution &solution, const MoveGenerator &move) override {
@@ -119,7 +119,7 @@ namespace cobra {
             const auto prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(c.v);
 
-            c.prevrem = -this->instance.get_cost(c.v, c.next);
+            c.prevrem = -solution.get_next_cost(c.v);
             c.seqrem = -this->instance.get_cost(prevprev, c.prev) + c.prevrem + this->instance.get_cost(prevprev, c.next);
 
 
@@ -136,7 +136,7 @@ namespace cobra {
             const auto prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.prevrem = -this->instance.get_cost(c.v, c.next);
+            c.prevrem = -solution.get_next_cost(c.v, c.next);
             c.seqrem = -this->instance.get_cost(prevprev, c.prev) + c.prevrem + this->instance.get_cost(prevprev, c.next);
 
 
@@ -202,7 +202,7 @@ namespace cobra {
             //const auto route = solution.get_route_index(c.v);
             c.next = solution.get_next_vertex(c.v);
 
-            c.prevrem = -this->instance.get_cost(c.v, c.next);
+            c.prevrem = -solution.get_next_cost(c.v);
 
 
             return c;
@@ -215,7 +215,7 @@ namespace cobra {
             const auto route = solution.get_route_index(c.v, backup);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.prevrem = -this->instance.get_cost(c.v, c.next);
+            c.prevrem = -solution.get_next_cost(c.v, c.next);
 
 
             return c;

@@ -30,8 +30,8 @@ namespace cobra {
             const auto jNext = solution.get_next_vertex(jRoute, j);
             const auto jNextNext = solution.get_next_vertex(jRoute, jNext);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrev, iPrev) - this->instance.get_cost(i, iNext);
-            const auto jPrevRem = -this->instance.get_cost(j, jNext) - this->instance.get_cost(jNext, jNextNext);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrev) - solution.get_next_cost(i);
+            const auto jPrevRem = -solution.get_next_cost(j) - solution.get_next_cost(jNext);
 
             const auto iSequenceAdd = +this->instance.get_cost(jNextNext, iPrev) + this->instance.get_cost(i, j);
             const auto jNextAdd = +this->instance.get_cost(iPrevPrev, jNext) + this->instance.get_cost(jNext, iNext);
@@ -145,9 +145,9 @@ namespace cobra {
             c.next = solution.get_next_vertex(c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
-            c.prevrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.seqrem = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
+            c.prevrem = -c_v_next - solution.get_next_cost(c.next, c.nextnext);
 
             return c;
         }
@@ -162,9 +162,9 @@ namespace cobra {
             c.next = solution.get_next_vertex(route, c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
-            c.prevrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.seqrem = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
+            c.prevrem = -c_v_next - solution.get_next_cost(c.next, c.nextnext);
 
             return c;
         }
@@ -201,8 +201,8 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(c.v);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.seqrem = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
 
             return c;
         }
@@ -215,8 +215,8 @@ namespace cobra {
             c.prevprev = solution.get_prev_vertex(route, c.prev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.seqrem = -this->instance.get_cost(c.prevprev, c.prev) - c_v_next;
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.seqrem = -solution.get_prev_cost(c.prev, c.prevprev) - c_v_next;
 
             return c;
         }
@@ -234,8 +234,8 @@ namespace cobra {
             c.next = solution.get_next_vertex(c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.prevrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            const auto c_v_next = solution.get_next_cost(c.v);
+            c.prevrem = -c_v_next - solution.get_next_cost(c.next, c.nextnext);
 
             return c;
         }
@@ -247,8 +247,8 @@ namespace cobra {
             c.next = solution.get_next_vertex(route, c.v);
             c.nextnext = solution.get_next_vertex(route, c.next);
 
-            const auto c_v_next = this->instance.get_cost(c.v, c.next);
-            c.prevrem = -c_v_next - this->instance.get_cost(c.next, c.nextnext);
+            const auto c_v_next = solution.get_next_cost(c.v, c.next);
+            c.prevrem = -c_v_next - solution.get_next_cost(c.next, c.nextnext);
             
             return c;
         }

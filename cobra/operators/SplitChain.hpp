@@ -75,7 +75,7 @@ namespace cobra {
             const auto iNext = solution.get_next_vertex(iRoute, i);
             const auto jNext = solution.get_next_vertex(jRoute, j);
 
-            return -this->instance.get_cost(i, iNext) + this->instance.get_cost(i, j) - this->instance.get_cost(j, jNext) +
+            return -solution.get_next_cost(i) + this->instance.get_cost(i, j) - solution.get_next_cost(j) +
                    this->instance.get_cost(jNext, iNext);
         }
 
@@ -325,7 +325,7 @@ namespace cobra {
                     // From now on we are sure to insert at least one SplitNode
 
                     const auto jNext = solution.get_next_vertex(j);  // jRoute is always traversed in the correct way
-                    const auto delta = -iDelta + this->instance.get_cost(j, i) - this->instance.get_cost(j, jNext) + this->instance.get_cost(jNext, iNext);
+                    const auto delta = -iDelta + this->instance.get_cost(j, i) - solution.get_next_cost(j) + this->instance.get_cost(jNext, iNext);
 
                     // keep only improving chains
                     if (curr.delta_sum + delta > -this->tolerance) {
@@ -823,7 +823,7 @@ namespace cobra {
             c.v = vertex;
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem = -this->instance.get_cost(c.v, c.next);
+            c.seqrem = -solution.get_next_cost(c.v);
 
 
 
@@ -837,7 +837,7 @@ namespace cobra {
             const auto route = solution.get_route_index(c.v, backup);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem = -this->instance.get_cost(c.v, c.next);
+            c.seqrem = -solution.get_next_cost(c.v, c.next);
 
 
 

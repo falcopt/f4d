@@ -32,8 +32,8 @@ namespace cobra {
             const auto jPrevPrevPrev = solution.get_prev_vertex(jRoute, jPrevPrev);
             const auto jPrevPrevPrevPrev = solution.get_prev_vertex(jRoute, jPrevPrevPrev);
 
-            const auto iSequenceRem = -this->instance.get_cost(iPrevPrevPrev, iPrevPrev) - this->instance.get_cost(i, iNext);
-            const auto jSequenceRem = -this->instance.get_cost(jPrevPrevPrevPrev, jPrevPrevPrev) - this->instance.get_cost(jPrev, j);
+            const auto iSequenceRem = -solution.get_prev_cost(iPrevPrev) - solution.get_next_cost(i);
+            const auto jSequenceRem = -this->instance.get_cost(jPrevPrevPrevPrev, jPrevPrevPrev) - solution.get_prev_cost(j);
 
             const auto iSequenceAdd = +this->instance.get_cost(jPrevPrevPrevPrev, iPrevPrev) + this->instance.get_cost(i, j);
             const auto jSequenceAdd = +this->instance.get_cost(iPrevPrevPrev, jPrevPrevPrev) + this->instance.get_cost(jPrev, iNext);
@@ -184,8 +184,8 @@ namespace cobra {
             c.prevprevprevprev = solution.get_prev_vertex(route, c.prevprevprev);
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprevprev, c.prevprevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprevprev, c.prevprevprevprev) - solution.get_prev_cost(c.v);
 
             return c;
         }
@@ -202,8 +202,8 @@ namespace cobra {
             c.prevprevprevprev = solution.get_prev_vertex(route, c.prevprevprev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprevprev, c.prevprevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem1 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v, c.next);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprevprev, c.prevprevprevprev) - solution.get_prev_cost(c.v, c.prev);
 
             return c;
         }
@@ -237,7 +237,7 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.next = solution.get_next_vertex(c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v);
 
             return c;
         }
@@ -251,7 +251,7 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, c.prevprev);
             c.next = solution.get_next_vertex(route, c.v);
 
-            c.seqrem1 = -this->instance.get_cost(c.prevprevprev, c.prevprev) - this->instance.get_cost(c.v, c.next);
+            c.seqrem1 = -solution.get_prev_cost(c.prevprev, c.prevprevprev) - solution.get_next_cost(c.v, c.next);
 
             return c;
         }
@@ -271,7 +271,7 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, prevprev);
             c.prevprevprevprev = solution.get_prev_vertex(route, c.prevprevprev);
 
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprevprev, c.prevprevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprevprev, c.prevprevprevprev) - solution.get_prev_cost(c.v);
 
             return c;
         }
@@ -285,7 +285,7 @@ namespace cobra {
             c.prevprevprev = solution.get_prev_vertex(route, prevprev);
             c.prevprevprevprev = solution.get_prev_vertex(route, c.prevprevprev);
 
-            c.seqrem2 = -this->instance.get_cost(c.prevprevprevprev, c.prevprevprev) - this->instance.get_cost(c.prev, c.v);
+            c.seqrem2 = -solution.get_prev_cost(c.prevprevprev, c.prevprevprevprev) - solution.get_prev_cost(c.v, c.prev);
 
             return c;
         }
