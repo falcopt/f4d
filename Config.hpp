@@ -41,7 +41,40 @@ public:
     }
 
 private:
-    std::unordered_map<std::string, std::string> data;
+    std::unordered_map<std::string, std::string> data = {
+        
+        {"small_cache", "50"},
+        {"small_tier2", "0"},
+        {"small_fastopt", "0"},
+        {"small_routemin", "1000"},
+        {"small_granular_neighbors", "25"},
+        
+        {"medium_cache", "50"},
+        {"medium_tier2", "0"},
+        {"medium_fastopt", "0"},
+        {"medium_routemin", "1000"},
+        {"medium_granular_neighbors", "25"},
+
+        {"large_cache", "50"},
+        {"large_tier2", "0"},
+        {"large_fastopt", "0"},
+        {"large_routemin", "1000"},
+        {"large_granular_neighbors", "25"},
+
+        {"xlarge_cache", "50"},
+        {"xlarge_tier2", "0"},
+        {"xlarge_fastopt", "0"},
+        {"xlarge_routemin", "1000"},
+        {"xlarge_granular_neighbors", "25"},
+
+        {"xxlarge_cache", "50"},
+        {"xxlarge_tier2", "0"},
+        {"xxlarge_fastopt", "0"},
+        {"xxlarge_routemin", "1000"},
+        {"xxlarge_granular_neighbors", "25"},
+
+    };
+
 
     std::pair<std::string, std::string> split(const std::string& line) {
 

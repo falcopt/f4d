@@ -27,6 +27,7 @@
 #define DEFAULT_BKS_VALUE (std::nullopt)
 #define DEFAULT_SA_INIT_FACTOR (0.1f)
 #define DEFAULT_SA_FINAL_FACTOR (0.001f)
+#define DEFAULT_TIER2 (0)
 
 /* Tokens */
 #define TOKEN_OUTPATH ("--outpath")
@@ -47,6 +48,7 @@
 #define TOKEN_BKS_VALUE ("--bks-value")
 #define TOKEN_SA_INIT_FACTOR ("--sa-initial-factor")
 #define TOKEN_SA_FINAL_FACTOR ("--sa-final-factor")
+#define TOKEN_TIER2 ("--tier2")
 
 class Parameters {
 
@@ -71,6 +73,7 @@ private:
     std::optional<float> bks_value = DEFAULT_BKS_VALUE;
     float sa_initial_factor = DEFAULT_SA_INIT_FACTOR;
     float sa_final_factor = DEFAULT_SA_FINAL_FACTOR;
+    int tier2 = DEFAULT_TIER2;
 
 public:
     explicit Parameters(std::string instance_path_) : instance_path(std::move(instance_path_)) { }
@@ -136,6 +139,10 @@ public:
         return sa_final_factor;
     }
 
+    inline auto get_tier2() const {
+        return tier2;
+    }
+
     void set(const std::string& key, const std::string& value) {
 
         if (key == TOKEN_OUTPATH) {
@@ -175,6 +182,8 @@ public:
             sa_initial_factor = std::stof(value);
         } else if (key == TOKEN_SA_FINAL_FACTOR) {
             sa_final_factor = std::stof(value);
+        } else if (key == TOKEN_TIER2) {
+            tier2 = std::stoi(value);
         } else {
             std::cout << "Error: unknown argument '" << key << "'. Try --help for more information.\n";
             exit(EXIT_SUCCESS);

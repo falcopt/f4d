@@ -14,11 +14,6 @@
 cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution &source, std::mt19937 &rand_engine, cobra::MoveGenerators &move_generators,
                          int kmin, int max_iter, float tolerance) {
 
-#ifdef VERBOSE
-    auto partial_time_begin = std::chrono::high_resolution_clock::now();
-    auto partial_time_end = std::chrono::high_resolution_clock::now();
-#endif
-
     auto rvnd0 = cobra::RandomizedVariableNeighborhoodDescent<true>(
         instance, move_generators,
         {cobra::E11,   cobra::E10,  cobra::TAILS, cobra::SPLIT, cobra::RE22B, cobra::E22,  cobra::RE20,  cobra::RE21,  cobra::RE22S, cobra::E21, cobra::E20,
@@ -55,43 +50,7 @@ cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution 
 
     solution.commit();
 
-#ifdef VERBOSE
-    const auto main_opt_loop_begin_time = std::chrono::high_resolution_clock::now();
-
-    auto printer = cobra::PrettyPrinter({{"%", cobra::PrettyPrinter::Field::Type::INTEGER, 3, " "},
-                                         {"Objective", cobra::PrettyPrinter::Field::Type::INTEGER, 10, " "},
-                                         {"Routes", cobra::PrettyPrinter::Field::Type::INTEGER, 6, " "},
-                                         {"Iter/s", cobra::PrettyPrinter::Field::Type::REAL, 7, " "},
-                                         {"Eta (s)", cobra::PrettyPrinter::Field::Type::REAL, 6, " "},
-                                         {"% Inf", cobra::PrettyPrinter::Field::Type::REAL, 6, " "}});
-
-    auto number_infeasible_solutions = 0;
-
-#endif
-
-
     for (auto iter = 0; iter < max_iter; iter++) {
-
-#ifdef VERBOSE
-        partial_time_end = std::chrono::high_resolution_clock::now();
-        const auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(partial_time_end - partial_time_begin).count();
-        if (elapsed_time > 1) {
-
-            const auto progress = 100.0f * (iter + 1.0f) / static_cast<float>(max_iter);
-            const auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - main_opt_loop_begin_time)
-                                             .count();
-            const auto iter_per_second = static_cast<float>(iter + 1.0f) / (static_cast<float>(elapsed_seconds) + 0.01f);
-            const auto remaining_iter = max_iter - iter;
-            const auto estimated_rem_time = static_cast<float>(remaining_iter) / iter_per_second;
-            const auto fraction_infeasible_solutions = static_cast<float>(number_infeasible_solutions) / (iter + 1.0f);
-
-            printer.print(progress, best_solution.get_cost(), best_solution.get_routes_num(), iter_per_second, estimated_rem_time,
-                          fraction_infeasible_solutions);
-
-
-            partial_time_begin = std::chrono::high_resolution_clock::now();
-        }
-#endif
 
         // Remove all customers from the selected route and remove the route itself
 
@@ -205,22 +164,15 @@ cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution 
             if (solution.get_cost() < best_solution.get_cost() ||
                 (solution.get_cost() == best_solution.get_cost() && solution.get_routes_num() < best_solution.get_routes_num())) {
 
+                solution.print_dimacs();
                 best_solution = solution;
-
-#ifdef DIMACS
-                best_solution.print_dimacs();
-#endif
+                
 
                 if (best_solution.get_routes_num() <= kmin) {
                     goto end;
                 }
             }
 
-        } else {
-
-#ifdef VERBOSE
-            number_infeasible_solutions++;
-#endif
         }
 
         const auto gap = (solution.get_cost() - best_solution.get_cost()) / best_solution.get_cost();
