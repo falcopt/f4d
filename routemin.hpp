@@ -6,10 +6,6 @@
 #include "cobra/PrettyPrinter.hpp"
 #include "cobra/Solution.hpp"
 
-#ifdef GUI
-    #include "Renderer.hpp"
-#endif
-
 
 cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution &source, std::mt19937 &rand_engine, cobra::MoveGenerators &move_generators,
                          int kmin, int max_iter, float tolerance) {
@@ -166,13 +162,12 @@ cobra::Solution routemin(const cobra::Instance &instance, const cobra::Solution 
 
                 solution.print_dimacs();
                 best_solution = solution;
-                
+
 
                 if (best_solution.get_routes_num() <= kmin) {
                     goto end;
                 }
             }
-
         }
 
         const auto gap = (solution.get_cost() - best_solution.get_cost()) / best_solution.get_cost();

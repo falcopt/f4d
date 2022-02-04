@@ -5,7 +5,6 @@
 
 #define VERBOSE_LEVEL 1  // SPH verbose level
 
-#include "Config.hpp"
 #include "LinKernighan.hpp"
 #include "RuinAndRecreate.hpp"
 #include "TimeBasedCoreOptSolver.hpp"
@@ -42,11 +41,11 @@ void print_sol(sph::Instance& inst, sph::GlobalSolution& sol) {
 
 auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
-    auto param = parse_command_line_arguments(argv);
+    auto param = Parameters(std::string(argv[1]));
+
+    param.set(TOKEN_ROUND, argv[2]);
 
     int T = std::stoi(argv[3]);
-    Config cfg(argv[4]);
-
 
     auto rand_engine = std::mt19937(param.get_seed());
 
@@ -56,7 +55,6 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
     auto maybe_instance = (round_costs ? cobra::Instance::make<true>(param.get_instance_path()) : cobra::Instance::make<false>(param.get_instance_path()));
 
-
     if (!maybe_instance) {
         std::cout << "Error while parsing the instance '" << param.get_instance_path() << "'.\n";
         exit(EXIT_FAILURE);
@@ -64,40 +62,6 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
     const auto instance = std::move(maybe_instance.value());
 
-
-    // *************************
-
-    int small_size = cfg.get_int("small_size");
-    int medium_size = cfg.get_int("medium_size");
-    int large_size = cfg.get_int("large_size");
-    int xlarge_size = cfg.get_int("xlarge_size");
-
-
-    std::string size_prefix;
-    if (instance.get_vertices_num() <= small_size) {
-        size_prefix = "small";
-    } else if (instance.get_vertices_num() <= medium_size) {
-        size_prefix = "medium";
-    } else if (instance.get_vertices_num() <= large_size) {
-        size_prefix = "large";
-    } else if (instance.get_vertices_num() <= xlarge_size) {
-        size_prefix = "xlarge";
-    } else {
-        size_prefix = "xxlarge";
-    }
-
-    param.set(TOKEN_SOLUTION_CACHE_HISTORY, cfg.get_string(size_prefix + "_cache"));
-    param.set(TOKEN_TIER2, cfg.get_string(size_prefix + "_tier2"));
-    param.set(TOKEN_FASTOPT_ITERATIONS, cfg.get_string(size_prefix + "_fastopt"));
-    param.set(TOKEN_ROUTEMIN_ITERATIONS, cfg.get_string(size_prefix + "_routemin"));
-    param.set(TOKEN_SPARSIFICATION_RULE1_NEIGHBORS, cfg.get_string(size_prefix + "_granular_neighbors"));
-
-
-    // *************************
-
-
-
-    auto kmin = greedy_first_fit_decreasing(instance);
 
     auto k = param.get_sparsification_rule_neighbors();
     auto knn_view = cobra::KNeighborsMoveGeneratorsView(instance, k);
@@ -114,21 +78,7 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
          cobra::TWOPT, cobra::RE30, cobra::E30,   cobra::RE33B, cobra::E33,   cobra::RE31, cobra::RE32B, cobra::RE33S, cobra::E31,   cobra::E32, cobra::RE32S},
         rand_engine, tolerance);
 
-    // auto rvnd1 = cobra::RandomizedVariableNeighborhoodDescent(instance, move_generators, {cobra::EJCH, cobra::TLCH, cobra::STCH}, rand_engine, tolerance);
-
-
-    auto rvnd1 = cobra::RandomizedVariableNeighborhoodDescent(
-        instance, move_generators,
-        [&param]() -> std::vector<cobra::Operator> {
-            if (param.get_tier2() == 0) {
-                return {cobra::EJCH, cobra::TLCH, cobra::STCH};
-            } else if (param.get_tier2() == 1) {
-                return {cobra::EJCH};
-            } else {
-                return {};
-            }
-        }(),
-        rand_engine, tolerance);
+    auto rvnd1 = cobra::RandomizedVariableNeighborhoodDescent(instance, move_generators, {cobra::EJCH, cobra::TLCH, cobra::STCH}, rand_engine, tolerance);
 
     auto local_search = cobra::VariableNeighborhoodDescentComposer(tolerance);
     local_search.append(&rvnd0);
@@ -141,13 +91,15 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
     cobra::clarke_and_wright(instance, solution, param.get_cw_lambda(), param.get_cw_neighbors());
     solution.print_dimacs();
 
+    if (instance.get_vertices_num() > 400) {  // Here some hardcoded magic numbers for the DIMACS challenge
 
-    if (kmin < solution.get_routes_num()) {
+        auto kmin = greedy_first_fit_decreasing(instance);
+        if (kmin < solution.get_routes_num()) {
 
-        const auto routemin_iterations = param.get_routemin_iterations();
+            const auto routemin_iterations = param.get_routemin_iterations();
 
-        solution = routemin(instance, solution, rand_engine, move_generators, kmin, routemin_iterations, tolerance);
-
+            solution = routemin(instance, solution, rand_engine, move_generators, kmin, routemin_iterations, tolerance);
+        }
     }
 
     sph::SPHeuristic sph(instance.get_vertices_num() - 1);
@@ -157,9 +109,7 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
     TimeBasedCoreOptSolver cos(instance, param, rand_engine, move_generators, local_search, sph);
 
-    const auto fastopt_iterations = param.get_fastopt_iterations();
-    auto best_solution = cos.fastopt_ls(solution, fastopt_iterations);
-
+    auto best_solution = solution;
 
     int PHASE1 = 0;
     int PHASE2 = 1;
@@ -172,21 +122,75 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
     std::array<std::string, 2> sa_init_factor;
     std::array<std::string, 2> sa_final_factor;
 
+    if (instance.get_vertices_num() <= 200) {  // small
 
-    phase_time[PHASE1] = cfg.get_real(size_prefix + "_phase1_fract");
+        phase_time[PHASE1] = 1.0;
+
+        rounds[PHASE1] = 3;
+        filo_time[PHASE1] = 0.8;
+        filo_runs[PHASE1] = 8;
+
+        rounds[PHASE2] = 0;
+        filo_time[PHASE2] = 0.0;
+        filo_runs[PHASE2] = 0;
+
+    } else if (instance.get_vertices_num() <= 400) {  // medium
+
+        phase_time[PHASE1] = 1.0;
+
+        rounds[PHASE1] = 6;
+        filo_time[PHASE1] = 0.8;
+        filo_runs[PHASE1] = 8;
+
+        rounds[PHASE2] = 0;
+        filo_time[PHASE2] = 0.0;
+        filo_runs[PHASE2] = 0;
+
+    } else if (instance.get_vertices_num() <= 1001) {  // large
+
+        phase_time[PHASE1] = 0.25;
+
+        rounds[PHASE1] = 3;
+        filo_time[PHASE1] = 0.6;
+        filo_runs[PHASE1] = 3;
+
+        rounds[PHASE2] = 5;
+        filo_time[PHASE2] = 0.78;
+        filo_runs[PHASE2] = 1;
+
+    } else if (instance.get_vertices_num() <= 11001) {  // x large
+
+        phase_time[PHASE1] = 0.12;
+
+        rounds[PHASE1] = 1;
+        filo_time[PHASE1] = 0.72;
+        filo_runs[PHASE1] = 1;
+
+        rounds[PHASE2] = 4;
+        filo_time[PHASE2] = 0.85;
+        filo_runs[PHASE2] = 4;
+
+    } else {  // xx large
+
+        phase_time[PHASE1] = 0.17;
+
+        rounds[PHASE1] = 1;
+        filo_time[PHASE1] = 0.80;
+        filo_runs[PHASE1] = 1;
+
+        rounds[PHASE2] = 2;
+        filo_time[PHASE2] = 0.92;
+        filo_runs[PHASE2] = 2;
+    }
+
     phase_time[PHASE2] = 1 - phase_time[PHASE1];
-    rounds[PHASE1] = cfg.get_int(size_prefix + "_phase1_rounds");
-    rounds[PHASE2] = cfg.get_int(size_prefix + "_phase2_rounds");
-    filo_time[PHASE1] = cfg.get_real(size_prefix + "_phase1_filo_time");
-    filo_time[PHASE2] = cfg.get_real(size_prefix + "_phase2_filo_time");
-    filo_runs[PHASE1] = cfg.get_int(size_prefix + "_phase1_filo_runs");
-    filo_runs[PHASE2] = cfg.get_int(size_prefix + "_phase2_filo_runs");
     sph_time[PHASE1] = 1 - filo_time[PHASE1];
     sph_time[PHASE2] = 1 - filo_time[PHASE2];
-    sa_init_factor[PHASE1] = cfg.get_string(size_prefix + "_phase1_sa_init_factor");
-    sa_init_factor[PHASE2] = cfg.get_string(size_prefix + "_phase2_sa_init_factor");
-    sa_final_factor[PHASE1] = cfg.get_string(size_prefix + "_phase1_sa_final_factor");
-    sa_final_factor[PHASE2] = cfg.get_string(size_prefix + "_phase2_sa_final_factor");
+    sa_init_factor[PHASE1] = 0.1;
+    sa_init_factor[PHASE2] = 0.01;
+    sa_final_factor[PHASE1] = 0.001;
+    sa_final_factor[PHASE2] = 0.0001;
+
     solution = best_solution;
 
     for (int phase = 0; phase < 2; ++phase) {

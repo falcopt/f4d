@@ -25,8 +25,6 @@ public:
 
     int apply(cobra::Solution& solution, std::vector<int>& omega, std::vector<int>& removed) {
 
-        // auto removed = std::vector<int>();
-
         auto routes = std::unordered_set<int>();
 
         auto seed = customers_distribution(rand_engine);
@@ -64,26 +62,14 @@ public:
             } else {
                 // jump to neighbor route
 
-                /*if(static_cast<int>(routes.size()) < solution.get_routes_num() && boolean_dist(rand_engine)) {
-
-                    for(auto m = 1u; m < instance.get_neighbors_of(curr).size(); m++) {
-                        const auto neighbor = instance.get_neighbors_of(curr)[m];
-                        if(neighbor == instance.get_depot() || !solution.is_customer_in_solution(neighbor) || routes.count(solution.get_route_index(neighbor)))
-                { continue; } next = neighbor; break;
-                    }
-
-                } else {*/
-
                 for (auto m = 1u; m < instance.get_neighbors_of(curr).size(); m++) {
                     const auto neighbor = instance.get_neighbors_of(curr)[m];
-                    if (neighbor == instance.get_depot() || !solution.is_customer_in_solution(neighbor) /*|| solution.get_route_index(neighbor) == route*/) {
+                    if (neighbor == instance.get_depot() || !solution.is_customer_in_solution(neighbor)) {
                         continue;
                     }
                     next = neighbor;
                     break;
                 }
-
-                //}
             }
 
             assert(next != instance.get_depot());

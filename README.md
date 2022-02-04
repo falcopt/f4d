@@ -1,6 +1,6 @@
 # f4d
 
-A self-contained version of FILO for DIMACS.
+A self-contained version of FILO with SPH for DIMACS.
 
 # Build
 ```
