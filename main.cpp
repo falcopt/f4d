@@ -62,6 +62,9 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
     const auto instance = std::move(maybe_instance.value());
 
+    if (instance.get_vertices_num() <= 400) {
+        param.set(TOKEN_SOLUTION_CACHE_HISTORY, "100");
+    }
 
     auto k = param.get_sparsification_rule_neighbors();
     auto knn_view = cobra::KNeighborsMoveGeneratorsView(instance, k);
@@ -186,10 +189,10 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
     phase_time[PHASE2] = 1 - phase_time[PHASE1];
     sph_time[PHASE1] = 1 - filo_time[PHASE1];
     sph_time[PHASE2] = 1 - filo_time[PHASE2];
-    sa_init_factor[PHASE1] = 0.1;
-    sa_init_factor[PHASE2] = 0.01;
-    sa_final_factor[PHASE1] = 0.001;
-    sa_final_factor[PHASE2] = 0.0001;
+    sa_init_factor[PHASE1] = "0.1";
+    sa_init_factor[PHASE2] = "0.01";
+    sa_final_factor[PHASE1] = "0.001";
+    sa_final_factor[PHASE2] = "0.0001";
 
     solution = best_solution;
 
