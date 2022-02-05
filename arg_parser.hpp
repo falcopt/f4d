@@ -166,7 +166,4 @@ public:
     }
 };
 
-void print_help();
-Parameters parse_command_line_arguments(char* argv[]);
-
 #endif

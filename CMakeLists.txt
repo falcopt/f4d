@@ -18,8 +18,7 @@ set(SOURCE main.cpp
         greedy_bpp.hpp 
         routemin.hpp  
         RuinAndRecreate.hpp 
-        LinKernighan.hpp 
-        arg_parser.cpp 
+        LinKernighan.hpp  
         greedy_bpp.cpp)
 
 # Find CPLEX
