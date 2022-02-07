@@ -62,10 +62,6 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
 
     const auto instance = std::move(maybe_instance.value());
 
-    if (instance.get_vertices_num() <= 400) {
-        param.set(TOKEN_SOLUTION_CACHE_HISTORY, "100");
-    }
-
     auto k = param.get_sparsification_rule_neighbors();
     auto knn_view = cobra::KNeighborsMoveGeneratorsView(instance, k);
 
