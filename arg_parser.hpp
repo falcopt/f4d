@@ -15,7 +15,6 @@
 #define DEFAULT_CW_NEIGHBORS (100)
 #define DEFAULT_ROUTEMIN_ITERATIONS (1000)
 #define DEFAULT_COREOPT_ITERATIONS (100000)
-#define DEFAULT_FASTOPT_ITERATIONS (0)
 #define DEFAULT_SPARSIFICATION_RULE1_NEIGHBORS (25)
 #define DEFAULT_SPARSIFICATION_FACTOR (0.25f)
 #define DEFAULT_SPARSIFICATION_MULTIPLIER (0.50f)
@@ -24,7 +23,6 @@
 #define DEFAULT_TOLERANCE (0.01f)
 #define DEFAULT_SEED (0)
 #define DEFAULT_ROUND (1)
-#define DEFAULT_BKS_VALUE (std::nullopt)
 #define DEFAULT_SA_INIT_FACTOR (0.1f)
 #define DEFAULT_SA_FINAL_FACTOR (0.001f)
 
@@ -36,7 +34,6 @@
 #define TOKEN_SOLUTION_CACHE_HISTORY ("--cache")
 #define TOKEN_ROUTEMIN_ITERATIONS ("--routemin-iterations")
 #define TOKEN_COREOPT_ITERATIONS ("--coreopt-iterations")
-#define TOKEN_FASTOPT_ITERATIONS ("--fastopt-iterations")
 #define TOKEN_SPARSIFICATION_FACTOR ("--granular-gamma-base")
 #define TOKEN_SPARSIFICATION_MULTIPLIER ("--granular-delta")
 #define TOKEN_SHAKING_LB_FACTOR ("--shaking-lower-bound")
@@ -44,7 +41,6 @@
 #define TOKEN_SEED ("--seed")
 #define TOKEN_HELP ("--help")
 #define TOKEN_ROUND ("--round")
-#define TOKEN_BKS_VALUE ("--bks-value")
 #define TOKEN_SA_INIT_FACTOR ("--sa-initial-factor")
 #define TOKEN_SA_FINAL_FACTOR ("--sa-final-factor")
 
@@ -60,7 +56,6 @@ private:
     int cw_neighbors = DEFAULT_CW_NEIGHBORS;
     int routemin_iterations = DEFAULT_ROUTEMIN_ITERATIONS;
     int coreopt_iterations = DEFAULT_COREOPT_ITERATIONS;
-    int fastopt_iterations = DEFAULT_FASTOPT_ITERATIONS;
     int sparsification_rule_neighbors = DEFAULT_SPARSIFICATION_RULE1_NEIGHBORS;
     float gamma_base = DEFAULT_SPARSIFICATION_FACTOR;
     float delta = DEFAULT_SPARSIFICATION_MULTIPLIER;
@@ -68,7 +63,6 @@ private:
     float shaking_ub_factor = DEFAULT_SHAKING_UB_FACTOR;
     int seed = DEFAULT_SEED;
     bool round_costs = DEFAULT_ROUND;
-    std::optional<float> bks_value = DEFAULT_BKS_VALUE;
     float sa_initial_factor = DEFAULT_SA_INIT_FACTOR;
     float sa_final_factor = DEFAULT_SA_FINAL_FACTOR;
 
@@ -89,9 +83,6 @@ public:
     }
     inline int get_coreopt_iterations() const {
         return coreopt_iterations;
-    }
-    inline int get_fastopt_iterations() const {
-        return fastopt_iterations;
     }
     inline int get_sparsification_rule_neighbors() const {
         return sparsification_rule_neighbors;
@@ -126,9 +117,6 @@ public:
     inline bool needs_round_costs() const {
         return round_costs;
     }
-    inline auto get_bks_value() const {
-        return bks_value;
-    }
     inline auto get_sa_initial_factor() const {
         return sa_initial_factor;
     }
@@ -155,8 +143,6 @@ public:
             routemin_iterations = std::stoi(value);
         } else if (key == TOKEN_COREOPT_ITERATIONS) {
             coreopt_iterations = std::stoi(value);
-        } else if (key == TOKEN_FASTOPT_ITERATIONS) {
-            fastopt_iterations = std::stoi(value);
         } else if (key == TOKEN_SPARSIFICATION_FACTOR) {
             gamma_base = std::stof(value);
         } else if (key == TOKEN_SPARSIFICATION_MULTIPLIER) {
@@ -169,8 +155,6 @@ public:
             seed = std::stoi(value);
         } else if (key == TOKEN_ROUND) {
             round_costs = std::stoi(value);
-        } else if (key == TOKEN_BKS_VALUE) {
-            bks_value = {std::stof(value)};
         } else if (key == TOKEN_SA_INIT_FACTOR) {
             sa_initial_factor = std::stof(value);
         } else if (key == TOKEN_SA_FINAL_FACTOR) {
@@ -181,8 +165,5 @@ public:
         }
     }
 };
-
-void print_help();
-Parameters parse_command_line_arguments(char* argv[]);
 
 #endif

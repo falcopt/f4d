@@ -18,8 +18,7 @@ set(SOURCE main.cpp
         greedy_bpp.hpp 
         routemin.hpp  
         RuinAndRecreate.hpp 
-        LinKernighan.hpp 
-        arg_parser.cpp 
+        LinKernighan.hpp  
         greedy_bpp.cpp)
 
 # Find CPLEX
@@ -31,35 +30,6 @@ if (CPLEX_FOUND)
     set(LIBRARIES ${LIBRARIES} ${CPLEX_LIBRARIES} pthread dl m)
     add_definitions(-DIL_STD)
 endif(CPLEX_FOUND)
-
-option(ENABLE_VERBOSE "Enable verbose output" OFF)
-option(ENABLE_GUI "Enable graphical interface" OFF)
-option(ENABLE_DIMACS "Enable DIMACS output" OFF)
-
-message("-- Build options")
-
-if(ENABLE_GUI)
-    message("--- Graphical interface ENABLED")
-    add_definitions(-DGUI)
-    set(LIBRARIES ${LIBRARIES} glfw GL)
-    set(SOURCE ${SOURCE} Renderer.hpp)
-else()
-    message("--- Graphical interface DISABLED")
-endif()
-
-if(ENABLE_VERBOSE)
-    message("--- Verbose output ENABLED")
-    add_definitions(-DVERBOSE)
-else()
-    message("--- Verbose output DISABLED")
-endif()
-
-if(ENABLE_DIMACS)
-    message("--- DIMACS output ENABLED")
-    add_definitions(-DDIMACS)
-else()
-    message("--- DIMACS output DISABLED")
-endif()
 
 add_executable(f4d ${SOURCE})
 

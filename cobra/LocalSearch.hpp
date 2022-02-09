@@ -115,7 +115,7 @@ namespace cobra {
         std::vector<AbstractOperator*> sortable_list;
 
     public:
-        RandomizedVariableNeighborhoodDescent(const cobra::Instance& instance_, MoveGenerators& moves_, std::initializer_list<Operator> operators,
+        RandomizedVariableNeighborhoodDescent(const cobra::Instance& instance_, MoveGenerators& moves_, std::vector<Operator> operators,
                                               std::mt19937& rand_engine_, float tolerance = 0.01f)
             : instance(instance_), moves(moves_), rand_engine(rand_engine_) {
 

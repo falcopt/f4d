@@ -52,7 +52,6 @@ namespace cobra {
 
             split_nodes.resize(max_split_nodes + 10);
             feasible_chains.reserve(max_split_nodes);
-            // heap_array.resize(max_split_nodes + 10);
         }
 
         static constexpr bool is_symmetric = true;
@@ -229,8 +228,6 @@ namespace cobra {
             auto capacity = this->instance.get_vehicle_capacity();
             auto min_capacity = this->instance.get_demand_sum() - solution.get_routes_num() * capacity;
 
-            // solution.print(solution.get_route_index(curr.move->get_first_vertex()));
-            // solution.print(solution.get_route_index(curr.move->get_second_vertex()));
 
             // Explore the current path
             // Note that we consider iRoute the route that we are exploring and jRoute the other one
@@ -312,7 +309,6 @@ namespace cobra {
 
                     const auto current_max_demand = std::max(iRoute_load, jRoute_load);
                     if (current_max_demand >= max_demand || std::min(iRoute_load, jRoute_load) < min_capacity) {
-                        //((1.0 + 0.1 * max_chain_length) - 0.1 * std::min(max_chain_length, curr.level + 1)) * capacity) {
                         continue;
                     }
                     max_demand = current_max_demand;
@@ -374,7 +370,7 @@ namespace cobra {
                             split_nodes[rni].reversed = true;
                             split_nodes[rni].other_side_load = solution.get_route_load_before_included(j);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -394,7 +390,7 @@ namespace cobra {
                             split_nodes[rni].reversed = true;
                             split_nodes[rni].other_side_load = solution.get_route_load_after_included(i);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -416,7 +412,7 @@ namespace cobra {
                             split_nodes[rni].reversed = true;
                             split_nodes[rni].other_side_load = curr.other_side_load - this->instance.get_demand(i);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -438,7 +434,7 @@ namespace cobra {
                             split_nodes[rni].reversed = true;
                             split_nodes[rni].other_side_load = curr.other_side_load - this->instance.get_demand(i);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -460,7 +456,7 @@ namespace cobra {
                             split_nodes[rni].reversed = false;
                             split_nodes[rni].other_side_load = solution.get_route_load_before_included(j);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -480,7 +476,7 @@ namespace cobra {
                             split_nodes[rni].reversed = true;
                             split_nodes[rni].other_side_load = solution.get_route_load_before_included(i);
                             split_nodes[rni].next_movegen_index = 0;
-                            split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                            split_heap.insert(&split_nodes[rni]);  
                             rni++;
                             if (rni == max_split_nodes) {
                                 return true;
@@ -506,7 +502,7 @@ namespace cobra {
                                 split_nodes[rni].reversed = true;
                                 split_nodes[rni].other_side_load = curr.other_side_load - this->instance.get_demand(i);
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]); 
                                 rni++;
                                 if (rni == max_split_nodes) {
                                     return true;
@@ -532,7 +528,7 @@ namespace cobra {
                                 split_nodes[rni].reversed = false;
                                 split_nodes[rni].other_side_load = solution.get_route_load_after_included(j) - this->instance.get_demand(j);
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]);  
                                 rni++;
                                 if (rni == max_split_nodes) {
                                     return true;
@@ -559,7 +555,7 @@ namespace cobra {
 
                                 split_nodes[rni].other_side_load = iNext_load;
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]);  
                                 rni++;
                                 if (rni == max_split_nodes) {
                                     return true;
@@ -584,7 +580,7 @@ namespace cobra {
                                 split_nodes[rni].reversed = true;
                                 split_nodes[rni].other_side_load = solution.get_route_load_after_included(j) - this->instance.get_demand(j);
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]); 
 
                                 rni++;
                                 if (rni == max_split_nodes) {
@@ -610,7 +606,7 @@ namespace cobra {
 
                                 split_nodes[rni].other_side_load = iNext_load;
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]);  
 
 
                                 rni++;
@@ -635,7 +631,7 @@ namespace cobra {
                                 split_nodes[rni].reversed = true;
                                 split_nodes[rni].other_side_load = curr.other_side_load - this->instance.get_demand(i);
                                 split_nodes[rni].next_movegen_index = 0;
-                                split_heap.insert(&split_nodes[rni]);  // heap_insert(rni);
+                                split_heap.insert(&split_nodes[rni]);  
 
                                 rni++;
                                 if (rni == max_split_nodes) {
@@ -719,9 +715,6 @@ namespace cobra {
                 const auto i = move->get_first_vertex();
                 const auto j = move->get_second_vertex();
 
-                // std::cout<< "Executing split from MG (" << i << ',' << j << ") Dir= " << split_nodes[ptr].direction << " Rev=" << split_nodes[ptr].reversed
-                // << "\n";
-
                 assert(i != this->instance.get_depot());
                 assert(j != this->instance.get_depot());
 
@@ -736,7 +729,6 @@ namespace cobra {
 
                 // CUSTOM SPLIT (it may be optimized)
                 const auto iNext = solution.get_next_vertex(i);
-                //const auto jNext = solution.get_next_vertex(j);
 
                 auto curr = j;
                 while (curr != this->instance.get_depot()) {
@@ -772,11 +764,7 @@ namespace cobra {
                 }
             }
 
-            /*if (split_moves.size() > 1) {
-                std::cout<< "Applied SplitChain of size " << moves.size() << "!!!!!\n";
-                std::cout << "@@@ Remember we are checking solution feasibility after SPLIT @@@\n";
-            }
-            */
+           
 
             if (!solution.is_feasible()) {
                 abort();
@@ -788,13 +776,7 @@ namespace cobra {
         }
 
         void post_processing(__attribute__((unused)) Solution &solution) override {
-            // REMOVE
-            // // std::cout<< " Called: " << called;
-            // // std::cout<< ", Current FeasChainLenAVG: " << static_cast<double>(feasChainLenSum) / static_cast<double>(foudFeas);
-            // // std::cout<< ", Current feasChainLenMax: " << feasChainLenMax;
-            // // std::cout<< ", Current chainNumSumAVG: " << static_cast<double>(chainNumSum) / static_cast<double>(called);
-            // // std::cout<< std::endl;
-            // REMOVE
+           
         }
 
         std::string get_additional_statistics() override {

@@ -23,14 +23,7 @@ namespace cobra {
         static const int heap_unheaped = -1;
         static constexpr auto max_chain_length = 5;
 
-        // REMOVE
-        // unsigned called = 0;
-        // unsigned foudFeas = 0;
-        // long long unsigned feasChainLenSum = 0;
-        // unsigned feasChainLenMax = 0;
-        // double averageLengthSum = 0.0;
-        // long long unsigned chainNumSum = 0;
-        // REMOVE
+       
 
         struct Relocation {
             short heap_index = heap_unheaped;
@@ -38,12 +31,7 @@ namespace cobra {
             int level = 0;
             float delta_sum = 0.0f;
             const MoveGenerator *move = nullptr;
-            // std::unordered_map<int, int> modified_routes_loads;
             SmallFlatMap<int, int, 0, 25> modified_routes_loads;
-#ifdef DISTANCE_CONSTRAINED
-            // std::unordered_map<int, float> modified_routes_costs;  // todo maps may be merged into a unique one to avoid multiple searches
-            SmallFlatMap<int, float, 0, 25> modified_routes_costs;
-#endif
         };
 
         BitMatrix<2 * max_chain_length + 3> forbidden_i;
@@ -52,118 +40,11 @@ namespace cobra {
         std::vector<Relocation> relocation_nodes;
         std::vector<int> feasible_chains;
 
-        /* HEAP SECTION */
-
+    
         BinaryHeapPtr<Relocation, &Relocation::heap_index, &Relocation::delta_sum> relo_heap;
         inline int index_of(std::vector<Relocation> &nodes, Relocation &node) {
             return &node - nodes.data();
         }
-
-        /* #define LEFT(xxx) (2 * (xxx) + 1)
-        #define RIGHT(xxx) (2 * (xxx) + 2)
-        #define PARENT(xxx) (((xxx)-1) / 2)
-
-                std::vector<short> heap_array;
-                short heap_len = 0;
-
-                bool is_heap() {
-
-                    for (auto n = 0; n < heap_len; n++) {
-                        if (relocation_nodes[heap_array[n]].heap_index != n) { return false; }
-                    }
-
-                    for (auto n = 0; n < heap_len; n++) {
-                        const auto left_index = LEFT(n);
-                        const auto right_index = RIGHT(n);
-                        if (left_index < heap_len) {
-                            if (relocation_nodes[heap_array[n]].delta_sum > relocation_nodes[heap_array[left_index]].delta_sum) { return false; }
-                        }
-                        if (right_index < heap_len) {
-                            if (relocation_nodes[heap_array[n]].delta_sum > relocation_nodes[heap_array[right_index]].delta_sum) { return false; }
-                        }
-                    }
-
-                    return true;
-                }
-
-                void heap_reset() { heap_len = 0; }
-
-                void heap_insert(int relocate_index) {
-                    assert(heap_len < max_relocation_nodes);
-                    int heap_index = heap_len;
-
-                    heap_len++;
-
-                    while (heap_index && relocation_nodes[relocate_index].delta_sum < relocation_nodes[heap_array[PARENT(heap_index)]].delta_sum) {
-
-                        const auto parent_index = PARENT(heap_index);
-                        heap_array[heap_index] = heap_array[parent_index];
-                        relocation_nodes[heap_array[heap_index]].heap_index = heap_index;
-                        heap_index = parent_index;
-                    }
-
-                    heap_array[heap_index] = relocate_index;
-                    relocation_nodes[relocate_index].heap_index = heap_index;
-
-                    assert(is_heap());
-                }
-
-                short heap_get() {
-
-                    assert(heap_len > 0);
-
-                    const auto move_index = heap_array[0];
-
-                    heap_array[0] = heap_array[heap_len - 1];
-                    relocation_nodes[heap_array[0]].heap_index = 0;
-                    heap_len--;
-
-                    heap_heapify(0);
-
-                    relocation_nodes[move_index].heap_index = -1;
-
-                    assert(is_heap());
-
-                    return move_index;
-                }
-
-                void heap_heapify(short heap_index) {
-                    short smallest;
-                    auto index = heap_index;
-
-                    while (index <= heap_len) {
-
-                        auto left_index = LEFT(index);
-                        auto right_index = RIGHT(index);
-
-                        if (left_index < heap_len && relocation_nodes[heap_array[left_index]].delta_sum < relocation_nodes[heap_array[index]].delta_sum) {
-                            smallest = left_index;
-                        } else {
-                            smallest = index;
-                        }
-
-                        if (right_index < heap_len && relocation_nodes[heap_array[right_index]].delta_sum < relocation_nodes[heap_array[smallest]].delta_sum) {
-                            smallest = right_index;
-                        }
-
-                        if (smallest != index) {
-
-                            const auto tmp = heap_array[index];
-                            heap_array[index] = heap_array[smallest];
-                            heap_array[smallest] = tmp;
-
-                            relocation_nodes[heap_array[index]].heap_index = index;
-                            relocation_nodes[heap_array[smallest]].heap_index = smallest;
-
-                            index = smallest;
-
-                        } else {
-                            break;
-                        }
-                    }
-                } */
-
-        /* ============ */
 
     public:
         EjectionChain(const Instance &instance_, MoveGenerators &moves_, float tolerance_)
@@ -256,10 +137,7 @@ namespace cobra {
 
                 forbidden_i.reset(rni);
                 forbidden_i.set(rni, iPrev);
-                // forbidden_i.set(rni, i);
-                // forbidden_i.set(rni, iNext);
                 forbidden_i.set(rni, jPrev);
-                // forbidden_i.set(rni, j);
 
                 forbidden_j.reset(rni);
                 forbidden_j.set(rni, i);
@@ -271,19 +149,15 @@ namespace cobra {
                 relocation_nodes[rni].modified_routes_loads[jRoute] = solution.get_route_load(jRoute) + this->instance.get_demand(i);
                 relocation_nodes[rni].predecessor = -1;
 
-                relo_heap.reset();                         // heap_reset();
-                relo_heap.insert(&relocation_nodes[rni]);  // heap_insert(0);
+                relo_heap.reset();                         
+                relo_heap.insert(&relocation_nodes[rni]); 
                 rni++;
             }
 
             while (!relo_heap.empty()) {
 
-                auto &curr = *relo_heap.get();                             // relocation_nodes[curr_index];
-                const auto curr_index = index_of(relocation_nodes, curr);  // heap_get();
-
-                // if (curr.level > max_chain_length-1) {
-                //    continue;
-                //}
+                auto &curr = *relo_heap.get();                             
+                const auto curr_index = index_of(relocation_nodes, curr);  
 
                 // retrieve the route from which we would like to remove some vertex
                 const auto iRoute = solution.get_route_index(curr.move->get_second_vertex());
@@ -323,11 +197,6 @@ namespace cobra {
 
                         assert(move.get_first_vertex() == i);
 
-                        // ... searching for {i j} generators ...
-                        // if (move.get_first_vertex() != i) {
-                        //    // todo Recuperare la move indexed +1 altrimenti il move gen è perso per sempre
-                        //    continue;
-                        //}
 
                         const auto j = move.get_second_vertex();
 
@@ -385,10 +254,7 @@ namespace cobra {
 
                             forbidden_i.overwrite(curr_index, rni);
                             forbidden_i.set(rni, iPrev);
-                            // forbidden_i.set(rni, i);
-                            // forbidden_i.set(rni, iNext);
                             forbidden_i.set(rni, jPrev);
-                            // forbidden_i.set(rni, j);
 
                             forbidden_j.overwrite(curr_index, rni);
                             forbidden_j.set(rni, i);
@@ -400,7 +266,7 @@ namespace cobra {
                             relocation_nodes[rni].modified_routes_loads[jRoute] = jRoute_load + iDemand;
 
                             relocation_nodes[rni].predecessor = curr_index;
-                            relo_heap.insert(&relocation_nodes[rni]);  // heap_insert(rni);
+                            relo_heap.insert(&relocation_nodes[rni]);  
 
                             // if also 'jRoute' is feasible we have found a feasible chain!
                             if (feas) {
@@ -434,36 +300,15 @@ namespace cobra {
             }
 
 
-            // REMOVE
-            //++called;
-            // int count = 0;
-            // if (!feasible_chains.empty()) {
-            //    ++foudFeas;
-            //    for (auto ptr = feasible_chains[0]; ptr != -1; ptr = relocation_nodes[ptr].predecessor)
-            //        ++count;
-            //}
-            // feasChainLenSum += count;
-            // if (feasChainLenMax < count)
-            //    feasChainLenMax = count;
-            // chainNumSum += rni;
-            // REMOVE
-
             return !feasible_chains.empty();
         }
 
         inline void execute(Solution &solution, __attribute__((unused)) const MoveGenerator &p_move, VertexSet &storage) override {
 
-            // Find the most improving feasible ejection chain
-            // std::sort(feasible_chains.begin(), feasible_chains.end(), [this](int a, int b) -> bool {
-            //    return relocation_nodes[a].delta_sum < relocation_nodes[b].delta_sum;
-            //});
 
             // Apply the best chain after storing its vertices
             const auto best_chain_index = feasible_chains[0];
-            //auto &best_chain = relocation_nodes[best_chain_index];
 
-            // storage.insert(forbidden_i.get_set_entries_possibly_with_duplicates(best_chain_index).begin(),
-            // forbidden_i.get_set_entries_possibly_with_duplicates(best_chain_index).end());
             for (auto i : forbidden_i.get_set_entries_possibly_with_duplicates(best_chain_index)) {
                 storage.insert(i);
             }
@@ -503,13 +348,7 @@ namespace cobra {
         }
 
         void post_processing(__attribute__((unused)) Solution &solution) override {
-            // REMOVE
-            // std::cout << " Called: " << called;
-            // std::cout << ", Current FeasChainLenAVG: " << static_cast<double>(feasChainLenSum) / static_cast<double>(foudFeas);
-            // std::cout << ", Current feasChainLenMax: " << feasChainLenMax;
-            // std::cout << ", Current chainNumSumAVG: " << static_cast<double>(chainNumSum) / static_cast<double>(called);
-            // std::cout << std::endl;
-            // REMOVE
+            
         }
 
         std::string get_additional_statistics() override {

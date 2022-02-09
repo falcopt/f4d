@@ -655,8 +655,6 @@ class LinKernighan {
 
         if (tour.get_cost() + tolerance < initial_cost) {
 
-            // std::cout << "LK route " << route << " (" << solution.get_route_size(route) <<") from " << initial_cost << " to " << tour.get_cost() << "\n";
-
             for (auto vertex : tour.get_tour()) {
                 if (vertex == this->instance.get_depot()) {
                     continue;
@@ -681,8 +679,6 @@ public:
 
         auto routes = std::set<int>();
 
-        // for (auto i = solution.get_unstaged_changes().begin(); i!=cobra::datastruct::LRUCache::Entry::dummy_vertex; i =
-        // solution.get_unstaged_changes().get_next(i)) {
         for (auto i = solution.get_cache_begin(); i != solution.get_cache_end(); i = solution.get_cache_next(i)) {
             if (i == instance.get_depot()) {
                 continue;
