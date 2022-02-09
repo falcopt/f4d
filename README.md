@@ -2,6 +2,8 @@
 
 A self-contained version of FILO with SPH for DIMACS.
 
+**Readme in progress**
+
 # Build
 ```
 git clone git@github.com:falcopt/f4d.git
