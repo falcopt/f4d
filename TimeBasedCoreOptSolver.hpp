@@ -13,10 +13,6 @@
 #include "cobra/Solution.hpp"
 #include "cobra/Welford.hpp"
 
-#ifdef GUI
-    #include "Renderer.hpp"
-#endif
-
 class TimeBasedCoreOptSolver {
 public:
     TimeBasedCoreOptSolver(const cobra::Instance& instance_, const Parameters& params_, std::mt19937& rnd_, cobra::MoveGenerators& moves_,
@@ -80,7 +76,7 @@ public:
         const auto sa_final_temperature = static_cast<float>(mean_arc_cost) * param.get_sa_final_factor();
 
         auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - global_time_begin).count();
-        auto sa = cobra::TimeBasedSimulatedAnnealing2(sa_initial_temperature, sa_final_temperature, rand_engine, coreopt_iterations - elapsed_time);
+        auto sa = cobra::TimeBasedSimulatedAnnealing(sa_initial_temperature, sa_final_temperature, rand_engine, coreopt_iterations - elapsed_time);
 
 
         solution.commit();

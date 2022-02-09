@@ -24,15 +24,6 @@ namespace cobra {
         static const int heap_unheaped = -1;
         static constexpr auto max_chain_length = 5;
 
-        // REMOVE
-        // unsigned called = 0;
-        // unsigned foudFeas = 0;
-        // long long unsigned feasChainLenSum = 0;
-        // unsigned feasChainLenMax = 0;
-        // double averageLengthSum = 0.0;
-        // long long unsigned chainNumSum = 0;
-        // REMOVE
-
         struct TailNode {
             short heap_index = heap_unheaped;
             short predecessor = 0;
@@ -64,7 +55,6 @@ namespace cobra {
 
             tail_nodes.resize(max_tail_nodes + 10);
             feasible_chain = -1;
-            // heap_array.resize(max_tail_nodes + 10);
         }
 
         static constexpr bool is_symmetric = false;
@@ -138,7 +128,7 @@ namespace cobra {
             }
             // If the generating move is not feasible by itself, we start a chain
 
-            tail_heap.reset();  // heap_reset();
+            tail_heap.reset(); 
 
             // set up state variables
 
@@ -157,7 +147,7 @@ namespace cobra {
                 tail_nodes[rni].direction = true;
                 tail_nodes[rni].other_side_load = solution.get_route_load_before_included(j) - this->instance.get_demand(j);
                 tail_nodes[rni].next_movegen_index = 0;
-                tail_heap.insert(&tail_nodes[rni]);  // heap_insert(rni);
+                tail_heap.insert(&tail_nodes[rni]);  
 
                 rni++;
             }
@@ -179,7 +169,7 @@ namespace cobra {
                 tail_nodes[rni].direction = false;
                 tail_nodes[rni].other_side_load = solution.get_route_load_after_included(i) - this->instance.get_demand(i);
                 tail_nodes[rni].next_movegen_index = 0;
-                tail_heap.insert(&tail_nodes[rni]);  // heap_insert(rni);
+                tail_heap.insert(&tail_nodes[rni]);  
 
                 rni++;
             }
@@ -209,20 +199,7 @@ namespace cobra {
                 this->num_tree_nodes.update(rni);
             }
 
-            // REMOVE
-            //++called;
-            // int count = 0;
-            // if (feasible_chain >= 0) {
-            //    ++foudFeas;
-            //    for (auto ptr = feasible_chain; ptr != -1; ptr = relocation_nodes[ptr].predecessor)
-            //        ++count;
-            //}
-            // feasChainLenSum += count;
-            // if (feasChainLenMax < count)
-            //    feasChainLenMax = count;
-            // chainNumSum += rni;
-            // REMOVE
-            // std::cout << " return: end of is_feasible()\n";
+            
             return feasible_chain >= 0;
         }
 
@@ -236,14 +213,6 @@ namespace cobra {
             auto capacity = this->instance.get_vehicle_capacity();
             auto min_capacity = this->instance.get_demand_sum() - solution.get_routes_num() * capacity;
 
-            // Convenience Lambda to generalize for both directions
-            /*const auto next_vertex = [&](TailNode &curr) {
-                if constexpr (direction) {
-                    return curr.iNext;
-                } else {
-                    return solution.get_prev_vertex(curr.i);
-                }
-            };*/
 
             auto &curr = tail_nodes[curr_index];
 
@@ -501,27 +470,13 @@ namespace cobra {
                 const auto i_route = solution.get_route_index(i);
                 const auto j_route = solution.get_route_index(j);
 
-                // std::cout << "Before TAIL\n";
-                // solution.print(i_route);
-                // solution.print(j_route);
+               
 
                 storage.insert(i);
                 storage.insert(iNext);
                 storage.insert(jPrev);
                 storage.insert(j);
-                /* storage.insert(this->instance.get_depot());
-                this->update_bits.at(this->instance.get_depot(), UPDATE_BITS_FIRST, true);
-                this->update_bits.at(this->instance.get_depot(), UPDATE_BITS_SECOND, true);
-                for (auto a = solution.get_first_customer(iRoute); a != this->instance.get_depot(); i = solution.get_next_vertex(a)) {
-                    storage.insert(a);
-                    this->update_bits.at(a, UPDATE_BITS_FIRST, true);
-                    this->update_bits.at(a, UPDATE_BITS_SECOND, true);
-                }
-                for (auto a = solution.get_first_customer(jRoute); a != this->instance.get_depot(); i = solution.get_next_vertex(a)) {
-                    storage.insert(a);
-                    this->update_bits.at(a, UPDATE_BITS_FIRST, true);
-                    this->update_bits.at(a, UPDATE_BITS_SECOND, true);
-                } */
+                
 
                 this->update_bits.at(i, UPDATE_BITS_FIRST, true);
                 this->update_bits.at(iNext, UPDATE_BITS_SECOND, true);
@@ -530,10 +485,7 @@ namespace cobra {
 
                 solution.swap_tails(i, i_route, j, j_route);
 
-                // std::cout << "After TAIL\n";
-                // solution.print(i_route);
-                // solution.print(j_route);
-                // std::cout << "\n";
+               
 
                 if (solution.is_route_empty(i_route)) {
                     solution.remove_route(i_route);
@@ -555,13 +507,7 @@ namespace cobra {
         }
 
         void post_processing(__attribute__((unused)) Solution &solution) override {
-            // REMOVE
-            // std::cout << " Called: " << called;
-            // std::cout << ", Current FeasChainLenAVG: " << static_cast<double>(feasChainLenSum) / static_cast<double>(foudFeas);
-            // std::cout << ", Current feasChainLenMax: " << feasChainLenMax;
-            // std::cout << ", Current chainNumSumAVG: " << static_cast<double>(chainNumSum) / static_cast<double>(called);
-            // std::cout << std::endl;
-            // REMOVE
+            
         }
 
         std::string get_additional_statistics() override {

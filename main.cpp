@@ -11,8 +11,6 @@
 #include "arg_parser.hpp"
 #include "cobra/Instance.hpp"
 #include "cobra/LocalSearch.hpp"
-#include "cobra/PrettyPrinter.hpp"
-#include "cobra/RouteSet.hpp"
 #include "cobra/Solution.hpp"
 #include "cobra/SolutionAlgorithms.hpp"
 #include "greedy_bpp.hpp"
@@ -90,7 +88,8 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
     cobra::clarke_and_wright(instance, solution, param.get_cw_lambda(), param.get_cw_neighbors());
     solution.print_dimacs();
 
-    if (instance.get_vertices_num() > 400) {  // Here some hardcoded magic numbers for the DIMACS challenge
+    // Some hardcoded magic numbers for the DIMACS challenge
+    if (instance.get_vertices_num() > 400) {  
 
         auto kmin = greedy_first_fit_decreasing(instance);
         if (kmin < solution.get_routes_num()) {
@@ -121,6 +120,7 @@ auto main([[maybe_unused]] int argc, char* argv[]) -> int {
     std::array<std::string, 2> sa_init_factor;
     std::array<std::string, 2> sa_final_factor;
 
+    // Some hardcoded magic numbers for the DIMACS challenge
     if (instance.get_vertices_num() <= 200) {  // small
 
         phase_time[PHASE1] = 1.0;
